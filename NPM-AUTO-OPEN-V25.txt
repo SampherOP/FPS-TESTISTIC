@@ -1,0 +1,19 @@
+HAMU MASTER V25 — NPM START AUTO-OPEN (WINDOWS)
+
+If using the small V25 patch ZIP:
+1. Stop the current HAMU MASTER server with Ctrl+C.
+2. Extract the patch and copy its contents into your existing V24 game folder (the folder containing package.json).
+3. Replace the supplied files. Do not delete the game folder or private account data.
+
+Then run, one command at a time:
+npm install
+npm start
+
+npm start now opens the default browser automatically after the server starts successfully. The normal npm address is http://localhost:3000, unless PORT is configured differently. Keep CMD open while playing; use Ctrl+C to stop.
+
+npm install only installs dependencies. It does not launch the game on its own.
+start.bat remains supported on port 3003. Do not run it alongside npm start.
+For a server without automatic browser opening, use npm run server.
+
+The registration/login fix and V24 startup behavior remain included. No account files are bundled, reset or deleted.
+Validation: 111 automated tests pass. Windows browser-selection logic was tested with simulated platform inputs; native Windows browser launch was not available in the test environment.

@@ -1,0 +1,24 @@
+HAMU MASTER V29 — NEW GLB CHARACTERS
+16 September 2026
+
+ADDED
+- FPS_Player_v2.glb as FPS COMMANDO (commando)
+- Player_Soldier.glb as PLAYER SOLDIER (frontline)
+- Player_Heavy.glb as PLAYER HEAVY (juggernaut)
+- Existing SWAT, FIELD SOLDIER and TACTICAL SOLDIER remain available.
+
+INTEGRATION
+- Six selectable characters are available in Quick Play and the full Characters page.
+- Character cards generate portraits from the real GLB models; the old SVG art remains only as a loading fallback.
+- New models are normalized to the same gameplay height and continue using identical authoritative hitboxes, health, armor and movement.
+- New bone-name layouts are mapped to the existing weapon-hand IK, recoil, reload, crouch, jump, slide and movement posing.
+- Embedded animation clips are mapped where compatible. Procedural crouch/jump/slide posing remains authoritative where stacking supplied clips would distort ground contact.
+- Bots now rotate through all six character models.
+- Multiplayer party/operator persistence accepts all six IDs through the shared operator catalog.
+
+VALIDATION
+- Complete npm test: 113 passed, 0 failed.
+- Character tests cover all six real GLBs, scale/grounding, independent skeletons, all nine weapons, palm/grip IK, movement states, reload and non-finite transform checks.
+- JavaScript syntax checks passed for models.js, renderer.js and ui.js.
+
+No login, account, single-session warning, progression or server-data behavior was removed.

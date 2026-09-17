@@ -1,0 +1,14 @@
+HAMU MASTER V26 — SINGLE-DEVICE LOGIN
+
+Added:
+- Only one active login session is allowed per account.
+- Logging in from another Chrome/browser/device revokes all older tokens.
+- Any connected old game client is disconnected immediately and returned to login.
+- The same protection applies to player and admin accounts.
+- Added an automated test covering token revocation, immediate WebSocket disconnect, and one-session persistence.
+
+How to test:
+1. Start the game with npm start.
+2. Log in with one account in Chrome/device A.
+3. Open the server address in Chrome/device B and log in with the same ID/password.
+4. Device A will be logged out; only device B remains active.

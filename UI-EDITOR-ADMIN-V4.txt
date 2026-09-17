@@ -1,0 +1,16 @@
+HAMU MASTER — ADMIN HEAVY UI EDITOR V4
+
+ADMIN ACCESS
+- Dedicated LOGIN AS ADMIN flow.
+- Whitelist: Samphor.
+- Admin credential is stored as a scrypt verifier in server/auth.js; plaintext is not stored.
+- Normal players do not receive the EDIT UI control and server rejects editor writes.
+
+EDITOR
+- Drag the editor window by its header.
+- Select/drag UI elements behind it.
+- Edit text, X/Y, rotation, scale, width/height, typography, colors, backgrounds, borders, radius, shadow, opacity, z-index, visibility and pointer-events.
+- Existing data-action/button behavior is preserved.
+- CTRL+Z = step undo. CTRL+SHIFT+Z / CTRL+Y = redo.
+- Changes are persisted server-side in the HamuMaster data store and broadcast to connected players.
+- Menu character/camera world controls are included for admin adjustment.

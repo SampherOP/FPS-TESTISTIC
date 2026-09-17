@@ -1,0 +1,8 @@
+HAMU MASTER V27 — SESSION REPLACED WARNING
+
+When the same account logs in from another browser/device:
+- The previous session is revoked immediately.
+- Active gameplay is paused and pointer lock is released.
+- A compact warning overlay appears: ⚠️ ANOTHER PLAYER HAS LOGGED IN TO YOUR ACCOUNT.
+- The overlay shows a live 5-second countdown and animated timer bar.
+- After 5 seconds the old browser returns to the login screen.

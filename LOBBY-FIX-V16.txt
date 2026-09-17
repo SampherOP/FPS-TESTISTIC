@@ -1,0 +1,9 @@
+HAMU MASTER V16 LOBBY / STARTUP FIXES
+
+- Lobby character rotation now works through the DOM menu overlay as well as the WebGL canvas.
+- Left/right drag only; no vertical movement.
+- Character has a separate, non-occluded blue gradient footing under the feet.
+- Invisible character hit volume makes drag selection reliable.
+- Rotation remains account-local through menuYawByOperator and remote profile sync.
+- START_GAME.bat/start.bat robustly installs ws when needed, initializes the admin verifier on first launch, and starts server.js directly on fixed port 3000.
+- Existing account data and persistent data directory are not reset or overwritten.

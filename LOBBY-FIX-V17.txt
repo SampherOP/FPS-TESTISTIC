@@ -1,0 +1,8 @@
+V17 STARTUP / ADMIN FIX
+- Fixed port remains 3000.
+- Removed first-run interactive admin password prompt.
+- Launcher provisions the whitelisted admin credential automatically.
+- If Samphor account is missing, server creates only the missing admin account record; existing accounts are never overwritten.
+- START_GAME/start.bat starts the server automatically and opens http://localhost:3000 after the health endpoint responds.
+- Missing ws dependency is installed automatically before startup.
+- Existing private account/UI data is preserved.

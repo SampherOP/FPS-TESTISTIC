@@ -1,0 +1,46 @@
+services:
+  asia-01:
+    build: .
+    environment:
+      REGION_ID: asia
+      SERVER_ID: asia-01
+      PORT: 3000
+      HOST: 0.0.0.0
+      MAX_CLIENTS: 128
+    ports: ["3000:3000"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+  asia-02:
+    build: .
+    environment:
+      REGION_ID: asia
+      SERVER_ID: asia-02
+      PORT: 3001
+      HOST: 0.0.0.0
+      MAX_CLIENTS: 128
+    ports: ["3001:3001"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+  europe-01:
+    build: .
+    environment:
+      REGION_ID: europe
+      SERVER_ID: europe-01
+      PORT: 3002
+      HOST: 0.0.0.0
+      MAX_CLIENTS: 128
+    ports: ["3002:3002"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3002/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 3

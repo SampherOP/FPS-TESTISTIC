@@ -1,0 +1,23 @@
+HAMU MASTER V24 — WINDOWS NPM START / ACCOUNT-STORE LOCK FIX
+
+YOUR SCREENSHOT
+npm install succeeded. npm start stopped because Windows could not confirm whether PID 11236 (the old private-store lock owner) was still running.
+The screenshot alone does not prove that the old process has stopped.
+
+FIX
+The account-store check now uses read-only Windows process queries when Node's signal-0 check gives an ambiguous error. If Windows confirms the old process is absent, the server recovers the abandoned lock automatically. If the process is alive or still uncertain, the lock stays protected to prevent two servers writing to the same accounts.
+
+The launcher no longer force-kills Node processes on a port or leaves the server hidden in the background. The server stays in a visible window and opens the browser only after successful startup.
+
+RUN IT
+1. Close old HAMU MASTER server windows with Ctrl+C. If a hidden old server cannot be found, restart Windows once before testing this version.
+2. Extract this ZIP into a new folder.
+3. Either run start.bat (port 3003), OR run npm install followed by npm start (default port 3000). Do not start both.
+4. Keep the server window open while playing. Open the URL printed in that window.
+
+IMPORTANT
+Do not delete accounts.json, the HamuMaster folder, or a lock whose owner may still be running. No reset/deletion of accounts, sessions, profiles, friends or the admin verifier is included. The V23 registration/login fix is retained.
+
+VALIDATION
+Automated tests cover simulated Windows EPERM/EINVAL, successful/failed Windows queries, safe stale-lock recovery, live-lock protection and byte-for-byte account-data preservation. The full suite is recorded in validation/v24-tests.txt.
+These tests ran on Linux with Windows process responses simulated; native Windows CMD execution was not available here.

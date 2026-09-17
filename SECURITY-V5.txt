@@ -1,0 +1,19 @@
+HAMU MASTER V5 — SECURITY + LIVE ADMIN EDITOR
+
+ADMIN SECURITY
+- Admin plaintext password is NOT bundled in client JS, server JS, ZIP documentation or START_GAME.bat.
+- Whitelisted admin identity: Samphor.
+- On the first launch, START_GAME.bat asks for the admin password and passes it only to that server process.
+- The server creates data/admin-secret.json containing a salted scrypt verifier, never the plaintext password.
+- Normal login/register sessions are not admin sessions.
+- Every editor save is checked again on the server using the authenticated HttpOnly session.
+- Rate limiting, same-origin checks, JSON size limits and restrictive security headers are enabled.
+- Do not share your data/admin-secret.json if you copy a configured server installation.
+
+LIVE EDITOR
+- Menu UI editor remains admin-only.
+- F9 during active gameplay opens WORLD OBJECT EDITOR for the authenticated admin.
+- Pointer lock is released and the match is paused while editing.
+- Select scene objects, search them, move/rotate/scale/hide them, undo, save and resume.
+- Saved edits are persisted to the server UI/world configuration and broadcast to connected clients for live visual application.
+- Gameplay object edits are visual scene transforms in this build; collision/authoritative simulation geometry is not rewritten automatically. For collision-changing map editing, the server-side map/simulation must also be edited.

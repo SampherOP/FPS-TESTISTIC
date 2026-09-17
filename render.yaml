@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: hamu-master-backend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: HOST
+        value: "0.0.0.0"
+      - key: RECONNECT_GRACE_MS
+        value: "30000"
+      - key: COOKIE_SECURE
+        value: "1"
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: PUBLIC_HTTP_URL
+        sync: false
+      - key: PUBLIC_WS_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: HAMU_DB_TABLE
+        value: hamu_state

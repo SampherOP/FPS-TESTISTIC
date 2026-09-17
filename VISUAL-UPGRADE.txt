@@ -1,0 +1,17 @@
+HAMU MASTER — TACTICAL VISUAL UPGRADE
+
+Roman Urdu owner note:
+Yeh update accounts, login, save data, server authority aur gameplay balance ko touch kiye baghair visual side par hai. Robot jaisay operators ki jagah 3 asli military-style, original procedural mid-poly characters hain:
+
+• Sentinel: desert assault uniform, helmet, sealed goggles, plate carrier aur pouch rig.
+• Kestrel: recon cap, headset, scarf, cold-weather layers aur low-profile carrier.
+• Circuit: dark special-ops kit, balaclava, compact visor aur graphite armor.
+
+Har operator mein human head proportion, face/mask detail, shoulders, articulated knees/elbows, gloves, boots, belts aur magazines hain. Idle breathing/ready posture, smooth walk/run, crouch/slide, airborne pose, aim aur reload pose visual-only animation controller se chalti hai.
+
+9 original weapon silhouettes updated hain: do ARs, do SMGs, pump shotgun, scoped bolt rifle, do pistols aur knife. Metal/polymer surfaces, rails, vents, grips, stocks, optics aur movable magazine/bolt/slide/pump parts shamil hain. First person mein glove hands reload/recoil ke sath gun ko pakray rehte hain.
+
+Yeh Combat Master ya kisi aur game ki copied asset nahi hai. Sab geometry original procedural Three.js se bani hai; koi external texture/model/API add nahi hua. Yeh polished mid-poly upgrade hai, photoreal/AAA scan ya licensed-game asset replacement claim nahi.
+
+Run: npm start
+Checks: npm run check && npm test

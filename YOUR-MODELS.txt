@@ -1,0 +1,12 @@
+YOUR MODELS / BUILD 1.2.4
+
+Teen supplied GLB ab production characters hain; purane procedural operator robots live menu, remote players aur bots mein use nahin hote:
+- sentinel = SWAT by Quaternius (assets/models/swat.glb). Original GLB skeleton aur embedded clips (Idle_Gun, Idle_Gun_Pointing, Walk, Run, Run_Shoot, Gun_Shoot, Death waghera) mixer ke zariye ready/walk/run/aim states mein map hain. Weapon catalog wahi hai; weapon mount actual wrist/hand skeleton ke saath rehta hai.
+- kestrel = Soldier by Umair Yaqub (assets/models/umair.glb). Static mesh intact rakha gaya hai taake source geometry connected aur visual fidelity safe rahe; game ke same grounded height/hitbox ke saath lightweight imported rig wrapper aur weapon anchor use hota hai.
+- circuit = Soldier by madtrollstudio (assets/models/madtroll.glb). Static source ko intact rakha gaya hai; imported wrapper, weapon anchor aur normalized feet/hitbox use hota hai.
+
+Dono static GLBs mein source skeleton/animations nahin thay. Is liye un par fake mocap ya license claim nahin banaya gaya. Original mesh ko tod kar disconnected limbs banana visual tor par kharab tha, is wajah se static source geometry ko intact rakhna deliberate limitation hai; movement wrapper grounded state aur gun/reload presentation ko handle karta hai. Actual source hands naturally down ho sakte hain, is liye finger-perfect grip claim nahin hai. SWAT ke original clips actual animation hain.
+
+GLTFLoader, SkeletonUtils aur BufferGeometryUtils local vendor files mein Three.js r166 ke matching revision ke saath hain. GLBs embedded textures ke saath original uploads se copy hue hain. Creators/file attribution preserve hai; license terms unknown hain, unrestricted redistribution claim nahin kiya gaya.
+
+Setup: npm install; npm run check; npm test; npm start. Browser ko localhost server se kholen. Model preload startup par hota hai; failure silently procedural fallback nahin banata. Account/data/lock files ko touch nahin kiya gaya.

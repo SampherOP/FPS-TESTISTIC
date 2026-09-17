@@ -1,0 +1,8 @@
+HAMU MASTER HEAVY UI + IMAGE EDITOR V14
+
+Admin editor persistence fix:
+- UI editor keys no longer depend on CSS classes that change during editing.
+- Existing V10-V13 editor keys are migrated automatically to stable keys.
+- Saved MOVE/RESIZE/STYLE/IMAGE/EMOJI edits remain attached to the same UI element when another element is selected or saved.
+- Applies consistently after editor save, page navigation and re-render.
+- Port remains 3000.

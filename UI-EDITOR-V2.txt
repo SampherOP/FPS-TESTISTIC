@@ -1,0 +1,32 @@
+HAMU MASTER / ADVANCED VISUAL MENU EDITOR V2
+
+This build adds a real in-game visual UI editor. It is intentionally DOM-based so the original
+buttons keep their data-action handlers instead of being replaced by decorative screenshots.
+
+FEATURES
+- EDIT UI button in the top header.
+- Floating editor panel can be dragged from its header.
+- Select any rendered UI element behind the panel.
+- Click/drag selected elements directly with the mouse.
+- Text editing without removing nested icons.
+- X/Y offset, width, height, font size, opacity, color, background, border color, radius and z-index.
+- Hide/show individual elements.
+- Preview mode returns normal gameplay/menu clicking while keeping the editor available.
+- Lock mode prevents accidental edits.
+- Per-element changes are saved to localStorage under hamu-master-ui-editor-v2.
+- Changes are reapplied after page navigation and Quick Play re-renders.
+- Original data-action / button behavior is preserved; editor only intercepts clicks while edit mode is active.
+
+IMPORTANT
+The editor changes visual DOM presentation, not the underlying game logic. It does not convert
+3D WebGL meshes into DOM controls. Existing game actions remain attached to the same buttons.
+
+
+UNDO / REDO UPDATE
+- CTRL+Z restores the UI to the exact state immediately before the last editor operation.
+- CTRL+SHIFT+Z or CTRL+Y reapplies an undone operation.
+- Mouse dragging counts as one undoable operation, not dozens of mouse-move steps.
+- Text/number/color edits are grouped into one undoable editing session so typing a label does not require undoing every character.
+- Hide/show, reset-selected and reset-all are also undoable.
+- Up to 100 editor states are retained in the current editor session; saved UI changes remain in localStorage.
+- Undo/redo buttons are also available directly in the editor toolbar.

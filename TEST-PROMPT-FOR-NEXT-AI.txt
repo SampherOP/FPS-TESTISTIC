@@ -1,0 +1,72 @@
+Please test the attached HAMU MASTER V33 weapon-update ZIP. This is a CURRENT WORKING BUILD, not a fully release-validated build. The owner explicitly stopped further final testing and requested packaging so you can continue the checks.
+
+OWNER'S REQUIREMENTS
+- Replace all old gun visuals/names with the 11 supplied GLBs.
+- All 11 weapons must appear correctly in Weapon Selector, loadout menus, gallery, lobby, HUD and gameplay.
+- Each weapon needs appropriate firing/reload handling and properly aligned aiming; knife needs a swing, not firearm reload/ADS.
+- Preserve characters, maps, GUI features, accounts, existing saves, multiplayer and unrelated features.
+- Do NOT remove things arbitrarily. Do NOT perform lag optimizations or unrelated auth/social/security fixes during this testing task.
+- TEST AND REPORT FIRST. Ask the owner before editing game source or fixing issues. Run against a separate copy and temporary test accounts/data. Never overwrite real account stores.
+
+CURRENT BUILD / START
+Read V33-HANDOFF.md first. It supersedes older V29/V32/WIP completion notes retained inside the project.
+Requires Node.js 20+. Extract, enter hamu-master, run npm ci then npm start; normally open http://localhost:3000. For isolated automated runs use the server APIs/ephemeral ports and HAMU_DATA_DIR pointing to a fresh temporary directory. Back up real accounts before using an existing data directory.
+The archive is private: original account-related material and a known plaintext admin credential in start.bat may be present. Do not publish it or print credentials into reports. Credential handling was explicitly left outside this update.
+
+EXACT EXPECTED ARSENAL
+Stable internal IDs were intentionally retained for save/loadout compatibility. They are NOT evidence of an old visual still being used.
+ID          DISPLAY NAME    assets/models/weapons FILE
+ar4         ASSAULT         assault.glb
+hxr8        BULLPUP         bullp.glb
+mag83       MAG-83          mag-83.glb
+volt9       MP5             mp5.glb
+pincer      SUBMACHINE      submachine.glb
+breach12    SHOTGUN         shotgun.glb
+lancer7     SNIPER          sniper.glb
+snipeRil    SNIPE-RIL       snipe-ril.glb
+relay9      PISTOL          pistol.glb
+flick45     GLOCK 19        rigg-glock.glb
+edge        KNIFE           knife.glb
+
+MAG-83 and SNIPE-RIL are additional primary choices. Pistol/Glock are secondaries; Knife is melee. Old combat values were largely retained for compatible slots; new primaries have catalog values. Do not silently rebalance.
+
+WHAT WAS IMPLEMENTED
+- Catalog, slots, model/preview metadata and selector UI updated for all 11.
+- Old generated gun-body/optic factory removed. A pending load exposes safe metadata/view hands, not an old gun body. Failed GLB should report error, not silently resurrect an old gun.
+- Actual model PNG previews generated under assets/weapon-previews/{id}.png and wired into the existing weaponSVG-named UI helper. The helper name is compatibility, not old SVG artwork.
+- GLB preparation preserves source triangles/materials and identifies real named, rigid-bone, or complete disconnected components.
+- Real magazine groups: Assault, Bullpup, MAG-83, MP5, Submachine, Sniper, Pistol, Glock.
+- Pistol/Glock slide, shotgun pump, sniper bolt, available trigger groups are procedurally animated. Reload has phased hand/magazine movement; shotgun has shell-insertion helpers and pump cycle.
+- SNIPE-RIL has no trustworthy separate magazine/bolt component. It intentionally uses a chamber-loading hand/reload pose, NOT fabricated detached receiver faces. Knife has no gun reload.
+- No input GLB contains animation clips. Motions are authored in game code, not claimed as embedded clips.
+- Glock has two supplied skins; both source surfaces retained. Bind-matrix multiplication order was corrected after initial integration. Validate against source, especially small/zero-weight vertices.
+- Per-weapon sightX/sightHeight, muzzle/grip anchors, ADS pose and FOV in client/weapon-models.js, client/weapon-view.js and renderer.js. HUD scope label/transition uses actual ADS blend. Sniper target FOVs are 28 and 32 degrees. Knife ADS/no-zoom guard was the last production correction.
+
+HONEST LAST VALIDATION STATUS
+- Last COMPLETE suite before the final knife correction: 176 tests, 174 passed, 2 failed. Both failures were the strict melee no-zoom tests, because the pure view helper changed FOV from 80 to 75 when directly given ADS=1.
+- The helper was corrected to force melee aim blend to zero. The COMPLETE suite was NOT rerun after that correction. Do not call this 176/176 passing until you run it.
+- Project syntax/import check passed before that final correction.
+- Expanded weapon-model tests: 9/9 passed, including all five operators x all eleven weapons, arm continuity, shared-resource ownership, async behavior and mechanism reset.
+- Subsequent isolated Chromium weapon render generated previews plus hip/ADS/reload snapshots for all 11. All models reported ready, no page JavaScript errors were captured; authored ADS sight point projected to screen center for the 10 firearms. This is a mathematical anchor check, NOT proof of unobstructed actual sights or production camera alignment.
+- Those screenshots/contact sheets were not fully visually reviewed before the owner paused testing. Do not treat generated screenshots as a visual approval.
+- Earlier full-arena tests on the old V32 build stalled/crashed in SwiftShader software graphics. That is historical environment context, NOT a V33 hardware-GPU crash result. Sustained V33 full-game play has not been signed off.
+
+REQUIRED FINAL CHECKS
+1. Run npm run check, npm test and syntax checks fresh; preserve exact logs/counts. Identify real regressions separately from timing/environment failures. Do not weaken assertions to force green.
+2. Check all 11 GLBs and 11 preview images load over HTTP with no unintended 404s/errors. Ensure every supplied asset is mapped exactly once; old public names/old full gun bodies no longer appear. Test cold loading, delayed loading, failure, retry, rapid switch and disposing a pending weapon.
+3. Inspect actual PNG framing/transparency and every UI surface at common desktop resolutions. Verify weapon detail/select buttons, categories, loadout persistence and two added primaries. Check for clipped/misframed previews, duplicate cards/IDs, inaccessible selection, stale labels, and startup flashing of old names.
+4. In REAL production Renderer/Game/Input, visually inspect all 11 weapons at hip, settled ADS, firing, empty magazine, reload start/mid/end, sprint, swap and return to menu. Check handedness, scale, barrel direction, near-plane clipping, arms/fingers, muzzle flash/tracer placement and no old/new overlap. Compare Glock against both source skins and verify static-component splitting has not moved receiver surfaces by mistake.
+5. Aim at known targets: optical/iron sight center, camera-center hit ray and crosshair must agree. Mathematical anchor-centering alone is insufficient: check that geometry does not block the view. Verify different FOV settings/aspects, ADS while reloading/sprinting/dying/switching, and scope overlay appearing/disappearing in sync. Knife must not scope/zoom.
+6. Verify slide, magazine, bolt, pump and trigger timing FROM REAL SHOT/RELOAD EVENTS, not only direct calls to animateWeapon. Check pump/bolt delayed cycle and full reset. Test cancel/switch/reload/death transitions and support hand following the actual moving part. Inspect SNIPE-RIL's integral reload honestly; report its limitation rather than inventing a separated part.
+7. All five characters x all eleven guns: third-person/network/NPC/lobby grips, extreme pitch, crouch, run, reload and knife swing. Check finite bones plus actual visible palm/finger contact; do not equate finite transforms with good visual posing.
+8. Two authenticated real browser clients: equip every weapon, authoritative ammo/damage, independent reload/part transforms, remote gun switching, leave/rejoin. TDM, FFA and Domination. Test the two new primaries end to end. Native mouse capture and audio on real hardware.
+9. Regression: existing accounts/loadouts survive stable-ID mapping; settings, maps, characters, matchmaking and friends remain present. Test old saved loadouts and new loadouts without touching real data.
+10. Optional measurement only: repeated switch/equip/dispose should stabilize after cache warmup. Report observed growth, but do not start lag optimizations without approval.
+
+KNOWN PRE-EXISTING ISSUES NOT FIXED IN THIS WEAPON UPDATE
+- Online dedicated-fire path can repeat semiautomatic shots while held (pistol/shotgun/sniper). Check and report, but distinguish it from a newly introduced visual regression.
+- Plaintext admin launcher credential; client-authoritative progression; online admin FLY authorization issue; social friend-cap issues; FFA party-size documentation mismatch.
+These are not permission to edit unrelated systems. Keep the owner informed.
+
+REPORT FORMAT
+Return: overall status; exact tests passed/failed; confirmed bugs with reproduction, severity and file:line; visual screenshots for each failed/uncertain case; known pre-existing issues separately; tests blocked by environment; remaining manual checks. Clearly distinguish IMPLEMENTED, TESTED, VISUALLY APPROVED and UNVERIFIED. No claims of zero bugs or zero lag without evidence. Ask before fixing anything.

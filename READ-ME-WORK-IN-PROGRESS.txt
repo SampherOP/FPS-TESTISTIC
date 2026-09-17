@@ -1,0 +1,12 @@
+LATEST SNAPSHOT — STOPPED AT OWNER'S REQUEST, 14 September 2026
+
+Read LATEST-HANDOFF.md first. It supersedes older completion/validation claims in this archive.
+
+All current integration edits are included. Latest automated suite: 87 passed, 0 failed.
+Rigging has been further polished with independent generated finger/thumb chains and seven-step shotgun shell staging. Final browser/Windows visual validation is still unfinished; do not call this a fully validated release.
+
+PRIVATE OWNER ZIP: original supplied account data and GLB assets are retained. Do not publish.
+
+Windows: stop old server, back up accounts, extract separately, use Node.js 20+, run npm install then npm start. Open http://localhost:3000.
+Keep the same HAMU_DATA_DIR / Windows user. Do not delete AppData account files or backups.
+See UPGRADE-FIRST.txt and LOCK-FIX.txt for existing safe upgrade/recovery instructions.

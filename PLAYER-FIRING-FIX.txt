@@ -1,0 +1,24 @@
+PLAYER FIRING FIX
+
+Only existing game file changed: client/renderer.js
+
+Cause:
+The lobby character-rotation handler kept raycasting against the retained lobby models during matches. Its document-level left-mouse capture handler stopped propagation before the gameplay Input handler could receive Mouse0. This blocked firing while right-mouse aim, keyboard controls, and NPC firing continued to work.
+
+Fix:
+Lobby character dragging now runs only when the menu is visible, not displaying in-match settings, pointer lock is inactive, and the fly editor is inactive. Any unfinished lobby drag is cancelled when gameplay takes over. Lobby rotation remains available. Weapons, damage, networking, bindings, accounts, models, and other features were not changed or removed.
+
+Validation:
+- Reproduced the original bug using DOM capture/bubble propagation, the real Renderer mouse handlers, Input, Three.js raycasting, and World simulation.
+- Before: holding left mouse generated zero shots in TDM, FFA, and Domination.
+- After: the same one-second hold generated 7 shots and used 7 rounds in each mode.
+- Mouse release, right-mouse aim, W movement, lobby rotation, stale-drag cancellation, in-match settings, pointer-lock guard, and fly-editor guard passed.
+- All 145 existing tests passed, including the two-party-member authoritative firing test.
+- npm run check passed: 60 JavaScript modules parse; imports and HTML assets exist.
+- Browser rendering and a live session on your friends' devices were not tested. The targeted mouse tests use an emulated DOM, not a full browser.
+
+Use:
+Extract this ZIP into a separate folder and start normally (npm start / start.bat). Stop any old server first. For an existing installation, the only replacement needed is client/renderer.js; retain all your account/configuration data. Restart the server and have every player hard-refresh (Ctrl+F5) to load the updated file.
+
+Optional targeted test (Bun required; installs test-only happy-dom):
+bun -i validation/player-firing-regression.ts --assert

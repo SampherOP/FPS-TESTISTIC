@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="theme-color" content="Canvas">
+  <meta name="description" content="Hamu Master — an original, fast-paced WebGL arena shooter with local bots and real-time multiplayer.">
+  <title>Hamu Master — Original Arena FPS</title>
+  <link rel="icon" href="./assets/emblem.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./vendor/daisyui.css">
+  <link rel="stylesheet" href="./client/styles.css">
+  <link rel="stylesheet" href="./client/auth.css">
+  <link rel="stylesheet" href="./client/social.css">
+  <link rel="stylesheet" href="./client/friends-directory.css">
+  <link rel="preload" href="./assets/fonts/barlow-condensed-700.woff2" as="font" type="font/woff2" crossorigin>
+</head>
+<body>
+  <div id="account-gate" hidden aria-label="HAMU MASTER account access"></div>
+  <div id="viewport">
+    <canvas id="world" tabindex="0" aria-label="Interactive first-person arena. Use WASD to move and mouse to aim."></canvas>
+    <div id="menu">
+      <header id="topbar"></header>
+      <main id="page"></main>
+      <footer id="menu-footer">
+        <div class="footer-status"><i></i><span id="footer-status">LOCAL PRACTICE READY</span><span class="version">/ BUILD V33.4</span></div>
+        <div class="footer-actions">
+          <button data-action="nav" data-page="history"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12a9 9 0 1 0 3-7L3 8m0-5v5h5m4-2v6l4 2"/></svg>MATCH HISTORY</button>
+          <button data-action="controls"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M9 8a3 3 0 0 1 6 0c0 2-3 2-3 5m0 3v1"/></svg>CONTROLS & INTEL</button>
+        </div>
+      </footer>
+    </div>
+    <div id="hud" class="hidden"></div>
+    <div id="overlay" class="hidden" role="dialog" aria-modal="true" aria-label="Game dialog"></div>
+    <button id="squad-dock" data-action="nav" data-page="multiplayer" hidden aria-label="View matchmaking queue"></button>
+    <div id="toast" class="hidden" role="status" aria-live="polite"></div>
+    <div id="boot"><img src="./assets/emblem.svg" alt="Hamu Master emblem"><h1>HAMU MASTER</h1><p id="boot-message">PREPARING THE FOUNDRY / ORIGINAL WEBGL ARENA</p><span class="loading loading-spinner loading-sm"></span></div>
+    <noscript><div class="noscript-message">HAMU MASTER requires JavaScript and WebGL. Enable JavaScript and hardware acceleration, then reload.</div></noscript>
+  </div>
+  <script>
+    if (location.protocol === 'file:') {
+      document.getElementById('boot-message').innerHTML='Run <code>npm install</code> and <code>npm start</code> in the project folder, then open <code>http://localhost:3000</code>. ES modules need an HTTP server; do not open index.html directly.';
+    }
+    window.addEventListener('error', function(event) {
+      var boot=document.getElementById('boot'),message=document.getElementById('boot-message');
+      if(boot&&!boot.classList.contains('hidden')&&event.message)message.textContent='Startup error: '+event.message+'. Run npm start and open localhost:3000 in Chrome or Edge.';
+    });
+  </script>
+  <script src="./public-config.js"></script>
+  <script type="module" src="./client/main.js"></script>
+</body>
+</html>

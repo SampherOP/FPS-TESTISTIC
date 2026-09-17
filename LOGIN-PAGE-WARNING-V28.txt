@@ -1,0 +1,8 @@
+HAMU MASTER V28 — LOGIN-PAGE SESSION WARNING
+
+Corrected flow:
+1. A second browser/device logs into the same account.
+2. The old session is revoked and redirected to Login/Register.
+3. Once the Login/Register screen appears, a compact warning is shown inside its panel.
+4. The warning includes ⚠️, a live 5-to-0 countdown, and an animated 5-second bar.
+5. Only the warning disappears after 5 seconds; the Login/Register page remains open.

@@ -1,0 +1,24 @@
+HAMU MASTER V30 — PERFORMANCE, HANDS AND LOBBY FIXES
+
+FIXES
+- One green Player Soldier remains. Duplicate FPS Commando was removed from both selection menus and the loading catalog. Saved 'commando' selections migrate to 'frontline'. There are five unique selectable characters.
+- Heavy's existing weighted hand/arm geometry is retained. Weapon placement and elbow direction are corrected so the arms do not fold into the chest armor.
+- Character selection updates the local lobby immediately and synchronizes the full kit with the party. It survives reload. Changing a ready nonleader's kit marks them unready.
+- Unchanged party updates reuse existing models rather than repeatedly rebuilding skeletons, weapons, labels and pads.
+- Foot-grounding caches deformation-equivalent vertices and computes transform inverses per mesh, not per vertex. Normalization is cached per asset.
+- Hidden background animation/rendering stops behind full-page panels and resumes on return to Quick Play.
+- Temporary portrait models are disposed after capture.
+
+QUALITY
+No graphics preset, shadow quality, texture resolution, triangle count or animation data was reduced. GLB indexing is lossless: expanded triangle position, normal, UV, color, joint and weight bytes are identical to the supplied models. Source materials, textures and clips were verified unchanged.
+
+VALIDATION
+Local CPU animation microbenchmark: Player Soldier approximately 81% less time per pose; Heavy approximately 85% less. These are animation CPU measurements, not guaranteed overall FPS increases on every device.
+Full automated tests plus browser checks cover five portraits, Heavy hands, selection/party synchronization, reload persistence, model reuse and practice gameplay.
+
+START
+1. Stop the old server with Ctrl+C. Back up account data first.
+2. Extract into a NEW folder. Keep the same Windows user and HAMU_DATA_DIR/account-data location.
+3. Run npm install, then npm start.
+4. Open the URL printed by this server and press Ctrl+F5.
+Do not delete or replace account-data files. Existing single-device login and the login-page warning are retained.

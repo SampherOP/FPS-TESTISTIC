@@ -1,0 +1,22 @@
+HAMU MASTER V25 — START HERE
+
+WINDOWS: Double-click start.bat.
+- Requires Node.js 20+ with npm.
+- Installs the game dependency if missing.
+- Runs on http://localhost:3003 and opens the browser only after successful startup.
+- Keep the server window OPEN while playing. Press Ctrl+C to stop safely.
+- A startup error stays visible; the launcher no longer force-kills Node processes or hides its server in the background.
+
+COMMAND PROMPT: npm install, then npm start.
+- npm start defaults to http://localhost:3000 (or your PORT environment setting).
+- On Windows, npm start automatically opens the browser after successful startup. If it cannot, open the printed address manually.
+- Use one server/start method at a time. Keep CMD open while playing.
+- npm install only installs dependencies; npm start launches the game. See NPM-AUTO-OPEN-V25.txt.
+
+EXISTING ACCOUNTS
+No account files are deleted or reset. Keep the private HamuMaster data folder and any HAMU_DATA_DIR setting unchanged.
+The login/register fix from V23 is included.
+See WINDOWS-START-FIX-V24.txt if startup reports an account-store lock.
+
+SECURITY
+The existing admin configuration remains unchanged. The launcher contains an admin credential, so keep this folder private.

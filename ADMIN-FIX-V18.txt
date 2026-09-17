@@ -1,0 +1,10 @@
+HAMU MASTER V18 - ADMIN LOGIN FIX
+
+Port remains fixed at 3000.
+
+Fix: START_GAME.bat now detects a Node.js process listening on port 3000 and stops it before starting the current HAMU MASTER server. This prevents an older HAMU MASTER build from answering the browser and showing "Admin access is not initialized".
+
+The launcher still provisions the configured admin credential through HM_ADMIN_PASSWORD, and the server stores only its salted verifier.
+Admin username: Samphor.
+
+V19 hotfix: Windows launcher now starts the child CMD explicitly so HM_ADMIN_PASSWORD is inherited reliably; no first-run password prompt.

@@ -1,0 +1,34 @@
+HAMU MASTER V31 — COMPLETE UPDATED V30 GAME
+Packaged 16 September 2026 at the user's request to stop further work.
+
+START SAFELY
+1. Stop the old server and back up its account data.
+2. Extract this entire ZIP into a NEW folder.
+3. Keep the same Windows user and HAMU_DATA_DIR/account-data location.
+4. Run npm install, then npm start. Open the printed URL and press Ctrl+F5.
+Do not delete or overwrite account-data files. Test accounts are NOT included.
+The older V30 notes/build label are retained as historical context; this file describes this delivery.
+
+NEW FIXES
+- Weapon selection updates the local lobby and sends the kit to party members immediately.
+- Failed/unacknowledged profile saves survive reload and retry instead of losing the latest selection.
+- Saved lobby rotations survive model loading and server profile round trips.
+- Lobby hit-area resources and departing match models are disposed.
+- No unused local third-person model is allocated in the first-person view.
+- Animation pose buffers are reused; hand projection stops only when further passes cannot change it.
+
+VERIFIED
+- Exact original ZIP: npm test 123/123; separate V30 regressions 10/10; 60 JS syntax checks.
+- Updated game: npm test 140/140; separate V30 regressions 10/10; npm run check passed.
+- Browser: five unique cards, all five immediate selections, normal reload, failed-save reload/recovery, saved rotation, and two independent browser accounts' party character/weapon synchronization.
+- Heavy's existing hands were visible in actual unpaused arena checks: rifle idle from both sides, ADS, crouch, reload, and sidearm. V30 hand/model data was retained, not replaced. Run/knife were exercised but not exhaustively visually reviewed.
+- Animation equivalence: 3,780 baseline comparisons, zero transform difference.
+- Single-device login revoked the old session; Login/Register warning counted 5 to 0 and disappeared after 5.18 seconds.
+- Three repeated lobby cycles: 62 geometries/6 textures each. Three match-return cycles: 106/15 each, zero retained remote players.
+
+UNRESOLVED / LIMITATIONS
+Overall severe lag is NOT proven fixed. At unchanged High quality, 1280x900, DPR1, 2048 shadows, software-rendered Chromium gameplay averaged 413 ms/frame before and 410 ms/frame after (33 intervals each). This is effectively unchanged, very slow, and NOT a physical-GPU benchmark. The broad software-rendering bottleneck remains unresolved; no quality reduction was used. Long-session memory and real-device/network performance need further testing. Existing party lobby panels can overlap part of the character lineup at 1280x900; no layout redesign was attempted. Not every weapon/angle/state was visually inspected.
+
+PRESERVATION
+Original models, textures, animations, graphics settings and authentication/countdown source are unchanged. No original archive files were removed. Accounts remain in your existing external data location. No unfinished optional profiling utility is included.
+Evidence and detailed logs are in validation/. The five existing unique characters and commando-to-frontline migration are preserved.

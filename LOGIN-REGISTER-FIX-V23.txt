@@ -1,0 +1,31 @@
+HAMU MASTER V23 — LOGIN / REGISTER FIX
+
+START (WINDOWS)
+1. Stop any older HAMU MASTER server windows with Ctrl+C, including the old localhost:3000 server.
+2. Extract this ZIP into a new folder. Do not run the game from inside the ZIP.
+3. Double-click start.bat. It opens http://localhost:3003.
+4. Use that new tab, not an old localhost:3000 tab. Press Ctrl+F5 if needed.
+Node.js 20+ is required. The launcher installs the game dependency if missing.
+Alternative: npm install, then npm start (default http://localhost:3000).
+
+WHAT WAS WRONG
+The server rejected an email already linked to an account, but the client replaced every registration conflict with "That name was just claimed." A new name could therefore pass the first step, fail at the password step because of the email, and then fail login because no account had been created.
+
+WHAT IS FIXED
+- Step 1 checks both name AND email, without creating or reserving an account.
+- Username and email conflicts have distinct messages and error codes.
+- Final registration rechecks both fields safely, including simultaneous registrations.
+- Successful registration followed by failed browser-session confirmation clearly says the account was created and directs the player to login.
+- Added an existing-account login button on the name/email screen.
+- Corrected launcher instructions to match port 3003.
+
+EXISTING ACCOUNTS
+No account reset, deletion, password replacement or data migration change is included.
+If an email is already registered, log in using that email and its EXISTING GAME password. A failed registration does not set a new password. To create a separate account, use an unused email and name.
+Never use your Gmail password here. This is the game's own login, not Google sign-in.
+Keep the existing private data directory and any HAMU_DATA_DIR setting unchanged.
+
+VALIDATION
+See validation/v23-tests.txt, v23-check.txt and v23-browser-tests.json.
+Browser checks use isolated synthetic accounts, not your real account data.
+Game assets, gameplay, friends/party code and editor code are unchanged.

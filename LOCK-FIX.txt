@@ -1,0 +1,44 @@
+HAMU MASTER LOCK FIX — Windows startup recovery
+===============================================
+
+Agar `npm start` par `.hamu-store.lock` ka error aaye, pehle yeh check karein
+ke kisi doosre HAMU MASTER terminal mein server waqai chal nahin raha. Agar
+chal raha hai, usi terminal mein Ctrl+C dabayen aur phir start karein.
+
+Safe upgrade steps
+------------------
+1. Apna latest stable AppData data aur backups private jagah par rehne dein;
+   account folder ya backups delete na karein.
+2. Purane HAMU MASTER terminal ko Ctrl+C se band karein. Do processes ko ek
+   hi account directory par kabhi na chalayein.
+3. Naya ZIP alag folder mein extract karein; purana folder abhi na mitayein.
+4. Naye folder mein `npm install`, phir `npm start` chalayein.
+
+Naya build lock mein PID, hostname aur ek owner nonce rakhta hai. Yeh sirf us
+lock ko automatically recover karta hai jis ka local PID Node cross-platform
+check (`process.kill(pid, 0)`) se confirmed stopped ho. Yeh koi process ko
+kill nahin karta. Purane legacy text lock mein hostname nahin hota; private
+local OS data directory ke liye usay same-host maana jata hai, lekin tab bhi
+sirf confirmed stopped PID par recovery hoti hai. Live PID, permission/EPERM,
+unknown PID, ya doosre hostname ka lock blocked hi rahega by design, taa ke
+live account data safe rahe.
+
+Malformed lock: manual step sirf is surat mein
+-----------------------------------------------
+Agar error specifically kahe ke lock metadata malformed hai, aur aap ne
+verify kar liya hai ke koi HAMU MASTER server/startup/recovery chal nahin rahi,
+tab sirf is ek lock file ko manually remove karein:
+
+  `%APPDATA%\HamuMaster\.hamu-store.lock`
+
+Us ke baad `npm start` dobara chalayein. Account folder, JSON account files ya
+backups ko delete na karein. `taskkill` se sab Node processes ko blanket kill
+karne ki hidayat nahin hai: sirf actual HAMU MASTER owner ko uske terminal mein
+Ctrl+C se stop karein.
+
+Limit
+-----
+Yeh release Node ke cross-platform PID API use karti hai aur Windows-style
+legacy CRLF lock test cover hua hai, lekin physical Windows machine par test
+nahin ki gayi. Yeh single local data directory ke liye hai; distributed/NFS
+locking ka promise nahin karti.

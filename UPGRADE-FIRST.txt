@@ -1,0 +1,39 @@
+HAMU MASTER — UPGRADE SAFETY / SAVE ACCOUNTS
+=============================================
+
+THIS IS A PRIVATE OWNER ZIP. It contains private account data from the supplied
+installation. Do NOT publish, share or deploy this ZIP/data folder as public assets.
+
+1. Stop the old server (Ctrl+C). Never run two servers against one data directory.
+2. In the old project run: npm run data:backup -- before-upgrade. If that older project
+   does not have this new command, stop it and privately copy its entire data/ folder instead.
+   Copy that private backup OFF the server/PC too.
+3. Extract the new ZIP into a separate folder. Do not delete the old copy yet.
+4. Use the same HAMU_DATA_DIR private persistent directory on the new server; or use the
+   same OS user account, whose default stable data location is shown by `npm run data:location`.
+5. Start: npm install && npm start. The first start automatically copies the included old
+   project data/ only when the stable target has no store files. It preserves IDs,
+   password hashes, sessions, social data and profiles.
+6. Existing players log in normally using their old unique name and GAME password.
+
+SAFETY RULES
+- Never merge data directories or overwrite a non-empty target. Duplicate/conflicting
+  accounts need a manual, reviewed migration; this server refuses unsafe automatic merges.
+- Startup refuses corrupt JSON or social/profile files without accounts.json, so it does
+  not silently create empty accounts over damaged data. Restore a known-good backup.
+- Back up all four files: accounts.json, sessions.json, social.json, profiles.json.
+  `npm run data:backup -- LABEL` retains five manual snapshots; `backups/previous-good`
+  is an automatic bounded snapshot before the first write in a server run.
+- For recovery: stop server, move all four current JSON files to a safe place, then
+  `npm run data:list` and `npm run data:restore -- BACKUP-NAME`. Restore will not overwrite.
+- Account data is server storage, NOT a Gmail inbox or automatic cloud storage. Disk loss,
+  host loss, deletion or loss of all backups cannot be guaranteed against.
+
+EMAIL CHANGE
+New accounts require a Gmail/other email before Unique Name. It is an unverified private
+login identifier only; no Google/Gmail verification, Google sign-in, password reset or
+email-only login exists. Never enter a Gmail password. Existing accounts can link an email
+in PROFILE after confirming their current GAME password.
+
+Hosting needs one Node server, HTTPS/WSS, a private persistent volume configured with
+HAMU_DATA_DIR, and off-host backups. A static host alone cannot run accounts.
