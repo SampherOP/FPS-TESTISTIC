@@ -1,0 +1,106 @@
+{
+  "unsynced": {
+    "operator": "frontline",
+    "model": "frontline",
+    "pending": true
+  },
+  "recovered": {
+    "operator": "frontline",
+    "pending": false,
+    "server": "frontline"
+  },
+  "lobbyCycles": [
+    {
+      "heap": {
+        "usedSize": 11496324,
+        "totalSize": 12075008,
+        "embedderHeapUsedSize": 5413992,
+        "backingStorageSize": 16804535
+      },
+      "render": {
+        "players": 0,
+        "calls": 37,
+        "triangles": 32116,
+        "geometries": 62,
+        "textures": 6
+      }
+    },
+    {
+      "heap": {
+        "usedSize": 11606708,
+        "totalSize": 12337152,
+        "embedderHeapUsedSize": 5345472,
+        "backingStorageSize": 16804501
+      },
+      "render": {
+        "players": 0,
+        "calls": 37,
+        "triangles": 32116,
+        "geometries": 62,
+        "textures": 6
+      }
+    },
+    {
+      "heap": {
+        "usedSize": 11730268,
+        "totalSize": 12337152,
+        "embedderHeapUsedSize": 5273464,
+        "backingStorageSize": 16804537
+      },
+      "render": {
+        "players": 0,
+        "calls": 37,
+        "triangles": 32116,
+        "geometries": 62,
+        "textures": 6
+      }
+    }
+  ],
+  "matchCycles": [
+    {
+      "heap": {
+        "usedSize": 14224012,
+        "totalSize": 14958592,
+        "embedderHeapUsedSize": 5318560,
+        "backingStorageSize": 18697260
+      },
+      "render": {
+        "players": 0,
+        "calls": 37,
+        "triangles": 32116,
+        "geometries": 106,
+        "textures": 15
+      }
+    },
+    {
+      "heap": {
+        "usedSize": 14417136,
+        "totalSize": 15220736,
+        "embedderHeapUsedSize": 5326200,
+        "backingStorageSize": 18697260
+      },
+      "render": {
+        "players": 0,
+        "calls": 37,
+        "triangles": 32116,
+        "geometries": 106,
+        "textures": 15
+      }
+    },
+    {
+      "heap": {
+        "usedSize": 14476636,
+        "totalSize": 15220736,
+        "embedderHeapUsedSize": 5331112,
+        "backingStorageSize": 18697260
+      },
+      "render": {
+        "players": 0,
+        "calls": 37,
+        "triangles": 32116,
+        "geometries": 106,
+        "textures": 15
+      }
+    }
+  ]
+}

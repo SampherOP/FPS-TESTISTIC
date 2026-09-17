@@ -1,0 +1,146 @@
+--- a/START-HERE.txt
++++ b/START-HERE.txt
+@@ -1,9 +1,9 @@
+ HAMU MASTER — START HERE
+ 
+ 1. Double-click start.bat.
+-2. It keeps the fixed local port at 3000, starts the Node server automatically, waits briefly for /health, and opens the lobby in your default browser.
++2. It keeps the fixed local port at 3003 (http://localhost:3003), starts the Node server automatically, waits briefly for /health, and opens the lobby in your default browser.
+ 3. No manual CMD, npm install, or npm start is required. The launcher starts the server in its own child CMD with the admin credential environment inherited reliably. If ws is missing, start.bat installs dependencies automatically.
+-4. Admin login: name Samphor. The configured admin credential is provisioned by START_GAME/start.bat and no first-run password prompt is shown.
++4. Admin login: name Samphor. The configured admin credential is provisioned by start.bat and no first-run password prompt is shown.
+ 5. Existing account/private data is preserved. The launcher never deletes or resets the data directory.
+ 
+ IMPORTANT SECURITY NOTE
+--- a/client/auth.js
++++ b/client/auth.js
+@@ -8,7 +8,7 @@
+     try {
+       const response=await fetch(`/api/auth/${path}`,{method:body===undefined?'GET':'POST',credentials:'same-origin',cache:'no-store',headers:body===undefined?{}:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body),signal:controller.signal});
+       const data=await response.json().catch(()=>({error:'Account server unavailable. Start this project with npm start, then open its address.'}));
+-      if(!response.ok||(!data.user&&!('available' in data)&&!data.ok)) { const error=new Error(data.error||'The account server returned an invalid response.');error.status=response.status;throw error; }
++      if(!response.ok||(!data.user&&!('available' in data)&&!data.ok)) { const error=new Error(data.error||'The account server returned an invalid response.');error.status=response.status;error.code=data.code;throw error; }
+       return data;
+     } catch(error) {
+       if(error.name==='AbortError'||error instanceof TypeError)throw new Error('Cannot reach the account server. Check your connection and make sure npm start is running, then try again.');
+@@ -52,7 +52,7 @@
+     const description={checking:'Connecting securely to your account server…',welcome:'One identity for every match. Create your HAMU MASTER account to enter the Foundry.',name:'Enter your Gmail or other email first, then choose your permanent callsign. The email is unverified and is not Google sign-in.',password:`Your callsign is ${this.username}. Set a GAME password only you know — never enter your Gmail password.`,login:'Use your callsign or linked email, then your GAME password. No Gmail password is used.',admin:'Restricted operator access. Only the whitelisted admin account can enter this panel.'};
+     let form='';
+     if(step==='welcome')form='<button class="auth-primary" type="button" data-auth="name">CREATE ACCOUNT <span>↗</span></button><div class="auth-divider"><span>ALREADY AN OPERATOR?</span></div><button class="auth-secondary" type="button" data-auth="login">LOG IN</button><button class="auth-admin" type="button" data-auth="admin">LOGIN AS ADMIN <span>◆</span></button>'; 
+-    if(step==='name')form=`<label for="auth-email">GMAIL OR EMAIL</label><input id="auth-email" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254" required value="${esc(this.email)}" placeholder="you@gmail.com" aria-describedby="email-help auth-message"><small id="email-help">Required, unique and stored as UNVERIFIED contact/login information. This is not Google sign-in.</small><label for="auth-name">UNIQUE NAME</label><input id="auth-name" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" minlength="3" maxlength="18" pattern="[A-Za-z0-9_]{3,18}" required value="${esc(this.username)}" placeholder="e.g. HamuLegend" aria-describedby="name-help auth-message"><small id="name-help">3–18 letters, numbers or underscores. Names are not case-sensitive.</small><button class="auth-primary" type="submit">NEXT <span>→</span></button><button class="auth-back" type="button" data-auth="welcome">← BACK</button>`;
++    if(step==='name')form=`<label for="auth-email">GMAIL OR EMAIL</label><input id="auth-email" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254" required value="${esc(this.email)}" placeholder="you@gmail.com" aria-describedby="email-help auth-message"><small id="email-help">Required, unique and stored as UNVERIFIED contact/login information. This is not Google sign-in.</small><label for="auth-name">UNIQUE NAME</label><input id="auth-name" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" minlength="3" maxlength="18" pattern="[A-Za-z0-9_]{3,18}" required value="${esc(this.username)}" placeholder="e.g. HamuLegend" aria-describedby="name-help auth-message"><small id="name-help">3–18 letters, numbers or underscores. Names are not case-sensitive.</small><button class="auth-primary" type="submit">NEXT <span>→</span></button><button class="auth-back" type="button" data-auth="login">ALREADY REGISTERED? LOG IN</button><button class="auth-back" type="button" data-auth="welcome">← BACK</button>`;
+     if(step==='password')form=`<div class="auth-callsign"><span>YOUR UNIQUE NAME</span><strong>${esc(this.username)}</strong><button type="button" data-auth="name">EDIT</button></div><label for="auth-password">PASSWORD</label><div class="auth-password-wrap"><input id="auth-password" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required placeholder="At least 8 characters" aria-describedby="password-help auth-message"><button type="button" data-auth="reveal" aria-label="Show password" aria-pressed="false">SHOW</button></div><small id="password-help">8–128 characters. Use a long, unique password and save it safely.</small><label for="auth-confirm">CONFIRM PASSWORD</label><input id="auth-confirm" name="confirm" type="password" autocomplete="new-password" minlength="8" maxlength="128" required placeholder="Enter your password again"><button class="auth-primary" type="submit">CREATE ACCOUNT <span>↗</span></button><button class="auth-back" type="button" data-auth="name">← BACK TO NAME</button>`;
+     if(step==='admin')form=`<label for="auth-name">ADMIN NAME</label><input id="auth-name" name="identity" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="18" required value="${esc(this.username||'Samphor')}" placeholder="Admin name"><label for="auth-password">ADMIN PASSWORD</label><div class="auth-password-wrap"><input id="auth-password" name="password" type="password" autocomplete="current-password" maxlength="128" required placeholder="Admin password"><button type="button" data-auth="reveal">SHOW</button></div><button class="auth-primary" type="submit">ENTER ADMIN PANEL <span>→</span></button><small>This credential is separate from normal player login. The admin editor is hidden from non-admin accounts.</small><button class="auth-back" type="button" data-auth="welcome">← BACK</button>`;
+     if(step==='login')form=`<label for="auth-name">UNIQUE NAME OR LINKED EMAIL</label><input id="auth-name" name="identity" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="254" required value="${esc(this.username)}" placeholder="Your callsign or you@gmail.com"><label for="auth-password">GAME PASSWORD</label><div class="auth-password-wrap"><input id="auth-password" name="password" type="password" autocomplete="current-password" maxlength="128" required placeholder="Your HAMU MASTER password"><button type="button" data-auth="reveal" aria-label="Show password" aria-pressed="false">SHOW</button></div><button class="auth-primary" type="submit">LOG IN <span>→</span></button><small>Use your GAME password, never your Gmail password. No password reset is available.</small><button class="auth-back" type="button" data-auth="name">NEW HERE? CREATE ACCOUNT</button>`;
+@@ -79,14 +79,16 @@
+     if(step==='login'&&!this.username){this.message('Enter your unique name or linked email.');return;}
+     let password=this.root.querySelector('#auth-password')?.value;
+     if(step==='password'&&password!==this.root.querySelector('#auth-confirm').value){this.message('Passwords do not match. Please enter them again.');return;}
+-    this.busy=true;form.querySelector('fieldset').disabled=true;form.setAttribute('aria-busy','true');this.message(step==='name'?'Checking name availability…':step==='login'?'Logging in…':step==='admin'?'Verifying admin access…':'Creating your account…');
++    let accountCreated=false;
++    this.busy=true;form.querySelector('fieldset').disabled=true;form.setAttribute('aria-busy','true');this.message(step==='name'?'Checking name and email availability…':step==='login'?'Logging in…':step==='admin'?'Verifying admin access…':'Creating your account…');
+     try {
+       if(step==='name') {
+-        const data=await this.request(`username?name=${encodeURIComponent(this.username)}`);
+-        if(!data.available)throw new Error('This name is already taken. Choose another unique name.');
+-        this.username=data.username;this.render('password');
++        const data=await this.request('registration-check',{username:this.username,email:this.email});
++        if(!data.available)throw new Error('That name or email is already registered. Log in to your existing account or use different details.');
++        this.username=data.username;this.email=data.email;this.render('password');
+       } else {
+         const data=await this.request(step==='admin'?'admin-login':step==='login'?'login':'register',step==='admin'||step==='login'?{identity:this.username,password}:{username:this.username,email:this.email,password});
++        accountCreated=step==='password';
+         // Confirm the browser accepted the HttpOnly cookie before opening the game.
+         const current=(await this.request('me')).user;
+         if(current.id!==data.user.id)throw new Error('Your session could not be saved. Enable cookies for this site and log in again.');
+@@ -94,8 +96,16 @@
+         document.getElementById('boot').classList.remove('hidden');this.resolve(this.user);
+       }
+     } catch(error) {
+-      if(error.status===409&&step==='password'){this.render('name');this.message('That name was just claimed. Please choose another name.');}
+-      else this.message(error.message);
++      if(accountCreated){
++        this.render('login');
++        this.message(`Your account was created, but automatic sign-in could not be confirmed. Log in with the name and GAME password you just chose. ${error.message}`);
++      } else {
++        if(error.status===409&&step==='password')this.render('name');
++        // Preserve the server's actual error: an email conflict is not a taken name.
++        this.message(error.message);
++        const field=error.code==='EMAIL_TAKEN'||error.code==='INVALID_EMAIL'?'#auth-email':error.code==='USERNAME_TAKEN'||error.code==='INVALID_USERNAME'?'#auth-name':null;
++        if(field)requestAnimationFrame(()=>this.root.querySelector(field)?.focus({preventScroll:true}));
++      }
+     } finally {password=null;this.busy=false;const active=this.root.querySelector('fieldset');if(active)active.disabled=false;form.removeAttribute('aria-busy');}
+   }
+ }
+--- a/server/auth.js
++++ b/server/auth.js
+@@ -224,12 +224,27 @@
+     else this.sessions = next;
+   }
+ 
++  _assertRegistrationAvailable(username, normalizedEmail) {
++    if (this.users.has(usernameKey(username))) throw new AuthError(409, 'That username is already registered. Choose another name, or log in to your existing account.', 'USERNAME_TAKEN');
++    if (this.emails.has(normalizedEmail)) throw new AuthError(409, 'That email is already linked to an account. Log in with that email and its existing GAME password, or use a different email to create a new account.', 'EMAIL_TAKEN');
++  }
++
++  async checkRegistration(username, email) {
++    if (!validUsername(username)) throw new AuthError(400, 'Username must be 3-18 ASCII letters, numbers, or underscores.', 'INVALID_USERNAME');
++    const normalizedEmail = normalizeEmail(email);
++    if (!normalizedEmail) throw new AuthError(400, 'Enter a valid Gmail or email address. It is stored as unverified contact/login information.', 'INVALID_EMAIL');
++    await this._ensureReady();
++    this._assertRegistrationAvailable(username, normalizedEmail);
++    // A check does not reserve a name/email or create an account. Registration rechecks under the write lock.
++    return { available: true, username, email: normalizedEmail };
++  }
++
+   async register(username, email, password) {
+     if (!validUsername(username)) throw new AuthError(400, 'Username must be 3-18 ASCII letters, numbers, or underscores.');
+     const normalizedEmail = normalizeEmail(email);
+     if (!normalizedEmail) throw new AuthError(400, 'Enter a valid Gmail or email address. It is stored as unverified contact/login information.');
+     if (!validPassword(password)) throw new AuthError(400, 'Password must be 8-128 characters.');
+-    await this._ensureReady();
++    await this.checkRegistration(username, normalizedEmail);
+     const passwordHash = await this.scryptLimiter.run(async () => {
+       const salt = randomBytes(16);
+       const derived = await scrypt(password, salt, 32, SCRYPT_OPTIONS);
+@@ -237,8 +252,7 @@
+     });
+     return this._withWriteLock(async () => {
+       const key = usernameKey(username);
+-      if (this.users.has(key)) throw new AuthError(409, 'That username is already registered.');
+-      if (this.emails.has(normalizedEmail)) throw new AuthError(409, 'That email is already linked to an account.');
++      this._assertRegistrationAvailable(username, normalizedEmail);
+       const user = { id: randomUUID(), username, email: normalizedEmail, createdAt: new Date().toISOString(), passwordHash };
+       const next = new Map(this.users);
+       next.set(key, user);
+--- a/server/server.js
++++ b/server/server.js
+@@ -73,7 +73,7 @@
+   const serve=staticHandler(root);
+   const server=http.createServer(async(req,res)=>{res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','same-origin');res.setHeader('X-Frame-Options','DENY');res.setHeader('Cross-Origin-Opener-Policy','same-origin');res.setHeader('Cross-Origin-Resource-Policy','same-origin');let pathname;try{pathname=new URL(req.url,'http://localhost').pathname;}catch{json(res,400,{error:'Bad URL.'});return;}if(pathname==='/health'){json(res,200,{ok:true,version:1,rooms:rooms.size,players:[...clients.values()].filter(c=>c.room).length});return;}if(pathname.startsWith('/api/auth/')){await handleAuth(req,res,pathname);return;}if(pathname==='/api/profile'){await handleProfile(req,res);return;}if(pathname==='/api/ui-config'){await handleUIConfig(req,res);return;}
+     if(pathname==='/api/ui-image' || pathname.startsWith('/api/ui-image/')){await handleUIImage(req,res,pathname);return;}let decoded;try{decoded=decodeURIComponent(pathname);}catch{json(res,400,{error:'Bad URL.'});return;}if(decoded.split('/').includes('..')){res.writeHead(404);res.end('Not found');return;}serve(req,res);});
+-  async function handleAuth(req,res,pathname){const ip=requestIp(req);try{await auth.ready;await profiles.ready;if(pathname==='/api/auth/me'&&req.method==='GET'){const session=await auth.sessionForToken(cookieValue(req.headers.cookie));if(!session){json(res,401,{error:'Not authenticated.'});return;}json(res,200,{user:selfUser(session.user,session.admin)});return;}if(pathname==='/api/auth/username'&&req.method==='GET'){if(!rates.hit(`${ip}:username`,60)){json(res,429,{error:'Too many username checks. Try again shortly.'});return;}const name=new URL(req.url,'http://localhost').searchParams.get('name');if(!validUsername(name)){json(res,400,{error:'Username must be 3-18 ASCII letters, numbers, or underscores.'});return;}json(res,200,{available:await auth.availability(name),username:name});return;}if((pathname==='/api/auth/register'||pathname==='/api/auth/login'||pathname==='/api/auth/admin-login'||pathname==='/api/auth/logout'||pathname==='/api/auth/email')&&req.method==='POST'){if(!originMatchesRequest(req,req.headers.origin)){json(res,403,{error:'Cross-origin requests are not allowed.'});return;}if(!jsonContentType(req)){json(res,400,{error:'Content-Type must be application/json.'});return;}const bucket=pathname.endsWith('/register')?'register':pathname.endsWith('/admin-login')?'admin-login':pathname.endsWith('/login')?'login':pathname.endsWith('/email')?'email':'logout',max=bucket==='logout'?60:bucket==='register'?12:bucket==='admin-login'?10:bucket==='email'?12:30;if(!rates.hit(`${ip}:${bucket}`,max)){json(res,429,{error:'Too many requests. Try again shortly.'});return;}const body=await readJson(req),secure=Boolean(req.socket.encrypted||process.env.COOKIE_SECURE==='1');if(bucket==='register'){const user=await auth.register(body.username,body.email,body.password),session=await auth.login(body.username,body.password);res.setHeader('Set-Cookie',sessionCookie(session.token,secure));json(res,201,{user:selfUser(user)});return;}if(bucket==='login'){const session=await auth.login(body.identity??body.username,body.password);res.setHeader('Set-Cookie',sessionCookie(session.token,secure));json(res,200,{user:selfUser(session.user)});return;}if(bucket==='admin-login'){const session=await auth.adminLogin(body.identity??body.username,body.password);res.setHeader('Set-Cookie',sessionCookie(session.token,secure));json(res,200,{user:selfUser(session.user,true)});return;}if(bucket==='email'){const session=await auth.sessionForToken(cookieValue(req.headers.cookie));if(!session)throw new AuthError(401,'Not authenticated.');const updated=await auth.linkEmail(session.user.id,body.email,body.password);json(res,200,{user:selfUser(updated,session.admin)});return;}const token=cookieValue(req.headers.cookie),hash=await auth.logout(token);if(hash)for(const c of clients.values())if(c.sessionHash===hash)c.ws.close(4001,'Session ended');res.setHeader('Set-Cookie',clearSessionCookie(secure));json(res,200,{ok:true});return;}json(res,404,{error:'Not found.'});}catch(e){if(res.writableEnded)return;if(e instanceof AuthError)json(res,e.status,{error:e.message});else{console.error('auth request failed:',e);json(res,503,{error:'Authentication service temporarily unavailable.'});}}}
++  async function handleAuth(req,res,pathname){const ip=requestIp(req);try{await auth.ready;await profiles.ready;if(pathname==='/api/auth/me'&&req.method==='GET'){const session=await auth.sessionForToken(cookieValue(req.headers.cookie));if(!session){json(res,401,{error:'Not authenticated.'});return;}json(res,200,{user:selfUser(session.user,session.admin)});return;}if(pathname==='/api/auth/username'&&req.method==='GET'){if(!rates.hit(`${ip}:username`,60)){json(res,429,{error:'Too many username checks. Try again shortly.'});return;}const name=new URL(req.url,'http://localhost').searchParams.get('name');if(!validUsername(name)){json(res,400,{error:'Username must be 3-18 ASCII letters, numbers, or underscores.'});return;}json(res,200,{available:await auth.availability(name),username:name});return;}if((pathname==='/api/auth/registration-check'||pathname==='/api/auth/register'||pathname==='/api/auth/login'||pathname==='/api/auth/admin-login'||pathname==='/api/auth/logout'||pathname==='/api/auth/email')&&req.method==='POST'){if(!originMatchesRequest(req,req.headers.origin)){json(res,403,{error:'Cross-origin requests are not allowed.'});return;}if(!jsonContentType(req)){json(res,400,{error:'Content-Type must be application/json.'});return;}const bucket=pathname.endsWith('/registration-check')?'registration-check':pathname.endsWith('/register')?'register':pathname.endsWith('/admin-login')?'admin-login':pathname.endsWith('/login')?'login':pathname.endsWith('/email')?'email':'logout',max=bucket==='registration-check'?30:bucket==='logout'?60:bucket==='register'?12:bucket==='admin-login'?10:bucket==='email'?12:30;if(!rates.hit(`${ip}:${bucket}`,max)){json(res,429,{error:'Too many requests. Try again shortly.'});return;}const body=await readJson(req),secure=Boolean(req.socket.encrypted||process.env.COOKIE_SECURE==='1');if(bucket==='registration-check'){json(res,200,await auth.checkRegistration(body.username,body.email));return;}if(bucket==='register'){const user=await auth.register(body.username,body.email,body.password),session=await auth.login(body.username,body.password);res.setHeader('Set-Cookie',sessionCookie(session.token,secure));json(res,201,{user:selfUser(user)});return;}if(bucket==='login'){const session=await auth.login(body.identity??body.username,body.password);res.setHeader('Set-Cookie',sessionCookie(session.token,secure));json(res,200,{user:selfUser(session.user)});return;}if(bucket==='admin-login'){const session=await auth.adminLogin(body.identity??body.username,body.password);res.setHeader('Set-Cookie',sessionCookie(session.token,secure));json(res,200,{user:selfUser(session.user,true)});return;}if(bucket==='email'){const session=await auth.sessionForToken(cookieValue(req.headers.cookie));if(!session)throw new AuthError(401,'Not authenticated.');const updated=await auth.linkEmail(session.user.id,body.email,body.password);json(res,200,{user:selfUser(updated,session.admin)});return;}const token=cookieValue(req.headers.cookie),hash=await auth.logout(token);if(hash)for(const c of clients.values())if(c.sessionHash===hash)c.ws.close(4001,'Session ended');res.setHeader('Set-Cookie',clearSessionCookie(secure));json(res,200,{ok:true});return;}json(res,404,{error:'Not found.'});}catch(e){if(res.writableEnded)return;if(e instanceof AuthError)json(res,e.status,{error:e.message,...(e.code?{code:e.code}:{})});else{console.error('auth request failed:',e);json(res,503,{error:'Authentication service temporarily unavailable.'});}}}
+ 
+   async function handleUIConfig(req,res){
+     try {
+--- a/start.bat
++++ b/start.bat
+@@ -29,7 +29,7 @@
+   call npm install --no-audit --no-fund
+   if errorlevel 1 (
+     echo.
+-    echo npm install failed. Check your internet connection and try START_GAME.bat again.
++    echo npm install failed. Check your internet connection and try start.bat again.
+     pause
+     exit /b 1
+   )
+@@ -45,7 +45,7 @@
+   )
+ )
+ echo.
+-echo HAMU MASTER QUICK PLAY PARTY V21
++echo HAMU MASTER V23 - LOGIN REGISTER FIX
+ echo Server: http://localhost:%PORT%
+ echo Admin: Samphor
+ echo.

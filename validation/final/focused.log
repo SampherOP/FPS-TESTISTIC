@@ -1,0 +1,39 @@
+✔ an unsynced profile marker wins over a stale valid server profile after reload (3.682476ms)
+✔ a successful remote acknowledgment clears the latest marker (0.344897ms)
+✔ an earlier in-flight save cannot clear a later marker (6.968347ms)
+✔ a failed save preserves its marker and a later retry can clear it on success (1.304928ms)
+✖ pending profiles are isolated by account and malformed markers fall back safely (1.081293ms)
+✔ server profile sanitization keeps five allowed finite yaws and rejects unknown/non-finite values (0.399489ms)
+✔ ProfileStore preserves yaw, stats, history and loadout across a save and restart (11.425917ms)
+✔ main wiring reads remote profiles, installs sync and retries unsynced state (1.357698ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 7
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 134.701713
+
+✖ failing tests:
+
+test at tests/v31-profile-persistence.test.js:140:1
+✖ pending profiles are isolated by account and malformed markers fall back safely (1.081293ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///tmp/hamu-v30/hamu-master/tests/v31-profile-persistence.test.js:164:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

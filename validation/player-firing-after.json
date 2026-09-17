@@ -1,0 +1,29 @@
+{
+  "fireReceived": true,
+  "menuDragDuringMatch": false,
+  "modes": [
+    {
+      "mode": "tdm",
+      "ammo": 23,
+      "shots": 7
+    },
+    {
+      "mode": "ffa",
+      "ammo": 23,
+      "shots": 7
+    },
+    {
+      "mode": "dom",
+      "ammo": 23,
+      "shots": 7
+    }
+  ],
+  "released": true,
+  "ads": true,
+  "forward": true,
+  "lobbyRotation": true,
+  "staleDragCancelled": true,
+  "in-game-settings": true,
+  "pointerlock": true,
+  "fly-editor": true
+}

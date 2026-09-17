@@ -1,0 +1,5 @@
+
+> hamu-master@1.2.5 check
+> node scripts/check.js
+
+PASS: 54 JavaScript modules parse; local imports and HTML assets exist.

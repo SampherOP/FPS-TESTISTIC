@@ -1,0 +1,15 @@
+{
+  "passed": 9,
+  "failed": 0,
+  "checks": [
+    "Password mismatch remains on password screen and does not create an account.",
+    "Two-step browser registration creates account, saves HttpOnly session and opens game lobby.",
+    "Logout and case-insensitive username login work in the real browser.",
+    "Existing email + unique name is rejected at step 1 with EMAIL message; name remains available.",
+    "Correcting only the email allows the previously rejected unique name to register.",
+    "Login by normalized linked email works.",
+    "Email claimed between steps returns to step 1 and preserves accurate email-conflict message.",
+    "Username claimed between steps returns accurate username-conflict message.",
+    "Post-registration session confirmation failure clearly reports account created and offers working login."
+  ]
+}

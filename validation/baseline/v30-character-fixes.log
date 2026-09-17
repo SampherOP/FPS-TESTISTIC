@@ -1,0 +1,19 @@
+=== focused v30 test ===
+✔ five unique selectable models; removed green ID migrates without losing the selection (44.627591ms)
+✔ bots use only the five canonical operator IDs (3.127153ms)
+✔ Heavy keeps actual weighted hand geometry and both forearms in front of its chest (52.362088ms)
+✔ cached foot sampling preserves the exact original sole minimum through transformed poses (248.394898ms)
+✔ animation no longer performs one world inverse per foot vertex (5.505121ms)
+✔ lobby renders local selection immediately without overwriting a teammate (0.777547ms)
+✔ unchanged party updates reuse models and only a changed member rebuilds (0.494683ms)
+✔ solo lobby is centered in the visible character stage (0.170105ms)
+✔ selection synchronizes a complete kit to the party and marks nonleaders unready (0.380812ms)
+✔ a rapid second selection is synchronized after an in-flight kit request (0.26658ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1792.191157

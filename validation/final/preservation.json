@@ -1,0 +1,15 @@
+{
+  "originalFilesRetained": 138,
+  "removedOriginalFiles": [],
+  "changedOriginalFiles": [
+    "client/main.js",
+    "client/models.js",
+    "client/renderer.js",
+    "client/storage.js",
+    "client/ui.js",
+    "server/profile.js"
+  ],
+  "assetsAndVendorByteIdentical": true,
+  "authenticationCountdownAndAccountLocationSourceByteIdentical": true,
+  "finalJavaScriptSyntaxChecks": 63
+}

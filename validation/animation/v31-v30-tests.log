@@ -1,0 +1,21 @@
+✔ five unique selectable models; removed green ID migrates without losing the selection (61.791509ms)
+✔ bots use only the five canonical operator IDs (3.848786ms)
+✔ Heavy keeps actual weighted hand geometry and both forearms in front of its chest (68.917212ms)
+✔ cached foot sampling preserves the exact original sole minimum through transformed poses (353.333747ms)
+✔ animation no longer performs one world inverse per foot vertex (9.750152ms)
+✔ lobby renders local selection immediately without overwriting a teammate (0.784357ms)
+✔ unchanged party updates reuse models and only a changed member rebuilds (0.575463ms)
+✔ solo lobby is centered in the visible character stage (0.152289ms)
+✔ selection synchronizes a complete kit to the party and marks nonleaders unready (2.444899ms)
+✔ a rapid second selection is synchronized after an in-flight kit request (0.577517ms)
+✔ mixer basePose storage is stable and reused across animation frames (320.805312ms)
+✔ all models and weapon categories stay finite through gameplay pose states on transformed roots (1108.250728ms)
+✔ hand projection remains stable when called repeatedly after every supported weapon pose (150.158228ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6469.717439

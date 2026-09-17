@@ -1,0 +1,33 @@
+{
+  "weapon": {
+    "local": [
+      "hxr8",
+      "relay9",
+      "edge"
+    ],
+    "server": [
+      "ar4",
+      "relay9",
+      "edge"
+    ]
+  },
+  "heavy": {
+    "paused": false,
+    "simulationTime": 1.4166666666666665,
+    "positions": [
+      {
+        "id": "local",
+        "x": 0,
+        "y": 0,
+        "z": 15
+      },
+      {
+        "id": "hands-subject",
+        "x": 0,
+        "y": 0,
+        "z": 11
+      }
+    ],
+    "state": "idle"
+  }
+}

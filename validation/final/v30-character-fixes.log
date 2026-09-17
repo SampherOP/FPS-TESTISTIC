@@ -1,0 +1,18 @@
+✔ five unique selectable models; removed green ID migrates without losing the selection (53.953576ms)
+✔ bots use only the five canonical operator IDs (6.424972ms)
+✔ Heavy keeps actual weighted hand geometry and both forearms in front of its chest (79.460404ms)
+✔ cached foot sampling preserves the exact original sole minimum through transformed poses (372.517896ms)
+✔ animation no longer performs one world inverse per foot vertex (7.851082ms)
+✔ lobby renders local selection immediately without overwriting a teammate (1.243386ms)
+✔ unchanged party updates reuse models and only a changed member rebuilds (1.034272ms)
+✔ solo lobby is centered in the visible character stage (0.657016ms)
+✔ selection synchronizes a complete kit to the party and marks nonleaders unready (1.182976ms)
+✔ a rapid second selection is synchronized after an in-flight kit request (1.176656ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2379.452383

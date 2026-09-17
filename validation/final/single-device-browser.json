@@ -1,0 +1,38 @@
+{
+  "secondDeviceLoginStatus": 200,
+  "warning": "⚠️\nANOTHER PLAYER HAS LOGGED IN TO YOUR ACCOUNT\n\nYour previous session was disconnected for account safety.\n\nThis warning will close in 5s",
+  "loginAndRegisterVisible": true,
+  "oldSessionStatus": 401,
+  "timeline": [
+    {
+      "value": "5",
+      "at": 1653.3999999999069
+    },
+    {
+      "value": "4",
+      "at": 2656.899999999907
+    },
+    {
+      "value": "3",
+      "at": 3655
+    },
+    {
+      "value": "2",
+      "at": 4653.5
+    },
+    {
+      "value": "1",
+      "at": 5653.5
+    },
+    {
+      "value": "0",
+      "at": 6653.5
+    },
+    {
+      "value": "removed",
+      "at": 6833.799999999814
+    }
+  ],
+  "durationMs": 5180.399999999907,
+  "pass": true
+}

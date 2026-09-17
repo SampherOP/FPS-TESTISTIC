@@ -1,0 +1,34 @@
+{
+  "protected_files_byte_identical_to_input_zip": [
+    "assets/models/madtroll.glb",
+    "assets/models/umair.glb",
+    "assets/models/swat.glb",
+    "client/auth.js",
+    "client/storage.js",
+    "data/accounts.json",
+    "data/profiles.json",
+    "data/sessions.json",
+    "data/social.json",
+    "scripts/account-data.js",
+    "server/auth.js",
+    "server/client.js",
+    "server/matchmaking.js",
+    "server/profile.js",
+    "server/server.js",
+    "server/social.js",
+    "server/static.js",
+    "server/data-store.js"
+  ],
+  "modified_original_files": [
+    "READ-ME-WORK-IN-PROGRESS.txt",
+    "client/models.js",
+    "client/animation.js",
+    "client/geometry.js",
+    "client/renderer.js",
+    "shared/weapons.js",
+    "tests/imported-model-rig.test.js"
+  ],
+  "original_glbs_unchanged": true,
+  "original_account_data_unchanged": true,
+  "status": "Owner-requested WIP snapshot; final visual review unfinished"
+}

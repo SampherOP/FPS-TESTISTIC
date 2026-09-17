@@ -1,0 +1,6 @@
+{
+  "actual_npm_start_health": "passed",
+  "ctrl_c_lock_cleanup": "passed",
+  "test_platform": "Linux",
+  "native_windows_browser_tested": false
+}

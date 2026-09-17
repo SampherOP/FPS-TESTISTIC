@@ -1,0 +1,17 @@
+--- original/client/renderer.js
++++ fixed/client/renderer.js
+@@ -104,10 +104,12 @@
+   installMenuCharacterDrag(onRotate){
+     if(this._menuCharacterDragInstalled)return;this._menuCharacterDragInstalled=true;
+     const canvas=this.canvas,ray=new THREE.Raycaster(),point=new THREE.Vector2();
+-    const hitCharacter=(e)=>{if(!this.menuPartyModels.length||this.flyEditor.active)return false;const r=canvas.getBoundingClientRect();point.x=((e.clientX-r.left)/r.width)*2-1;point.y=-((e.clientY-r.top)/r.height)*2+1;ray.setFromCamera(point,this.menuCamera);const hits=ray.intersectObjects(this.menuPartyModels.map(x=>x.model),true);if(!hits.length)return false;let o=hits[0].object;while(o.parent&&!this.menuPartyModels.some(x=>x.model===o))o=o.parent;const item=this.menuPartyModels.find(x=>x.model===o);if(!item)return false;this.menuOperator=item.model;this.menuDrag.operatorId=item.operator;return true;};
++    // Lobby models stay loaded during matches, but must never capture gameplay clicks.
++    const canDrag=()=>{const menu=document.getElementById('menu');return !!menu&&!menu.classList.contains('hidden')&&!menu.classList.contains('in-game-settings')&&!document.pointerLockElement&&!this.flyEditor.active;};
++    const hitCharacter=(e)=>{if(!canDrag()||!this.menuPartyModels.length)return false;const r=canvas.getBoundingClientRect();point.x=((e.clientX-r.left)/r.width)*2-1;point.y=-((e.clientY-r.top)/r.height)*2+1;ray.setFromCamera(point,this.menuCamera);const hits=ray.intersectObjects(this.menuPartyModels.map(x=>x.model),true);if(!hits.length)return false;let o=hits[0].object;while(o.parent&&!this.menuPartyModels.some(x=>x.model===o))o=o.parent;const item=this.menuPartyModels.find(x=>x.model===o);if(!item)return false;this.menuOperator=item.model;this.menuDrag.operatorId=item.operator;return true;};
+     const begin=(e)=>{if(e.button!==0||!hitCharacter(e))return;this.menuDrag={active:true,lastX:e.clientX,operatorId:this.menuOperator?.userData?.operatorId};canvas.style.cursor='grabbing';e.preventDefault();e.stopPropagation();};
+     canvas.addEventListener('mousedown',begin,true);document.addEventListener('mousedown',e=>{if(e.button!==0||this.flyEditor.active)return;const t=e.target;if(t?.closest?.('button,a,input,select,textarea,[contenteditable="true"]'))return;begin(e);},true);
+-    window.addEventListener('mousemove',e=>{const d=this.menuDrag;if(!d.active||!this.menuOperator)return;const dx=e.clientX-d.lastX;d.lastX=e.clientX;this.menuOperator.userData.menuYaw=(Number(this.menuOperator.userData.menuYaw)||0)+dx*.012;if(onRotate)onRotate(this.menuOperator.userData.menuYaw,d.operatorId);});
++    window.addEventListener('mousemove',e=>{const d=this.menuDrag;if(!d.active||!this.menuOperator)return;if(!canDrag()){d.active=false;canvas.style.cursor='';return;}const dx=e.clientX-d.lastX;d.lastX=e.clientX;this.menuOperator.userData.menuYaw=(Number(this.menuOperator.userData.menuYaw)||0)+dx*.012;if(onRotate)onRotate(this.menuOperator.userData.menuYaw,d.operatorId);});
+     window.addEventListener('mouseup',e=>{if(!this.menuDrag.active||e.button!==0)return;this.menuDrag.active=false;canvas.style.cursor='';if(onRotate)onRotate(this.menuOperator?.userData?.menuYaw||0,this.menuOperator?.userData?.operatorId);});
+   }
+   renderMenu(time,dt) {

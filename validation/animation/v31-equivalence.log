@@ -1,0 +1,1 @@
+{"models":5,"weapons":9,"states":["idle","run","crouch","aim","pitch","reload"],"framesPerCase":14,"cases":3780,"maxDiff":0,"tolerance":1e-8,"status":"pass"}

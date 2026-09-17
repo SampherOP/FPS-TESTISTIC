@@ -1,0 +1,112 @@
+[
+  {
+    "test": "two independent browser accounts joined a real WebSocket party",
+    "pass": true,
+    "detail": {
+      "aid": "3f11e5e1-4f00-4bae-a2a2-83f49b9113a9",
+      "bid": "cf9aee73-e7b1-4984-b0ee-c34412bbb625"
+    }
+  },
+  {
+    "test": "nonleader character synchronizes and becomes unready",
+    "pass": true,
+    "detail": {
+      "id": "cf9aee73-e7b1-4984-b0ee-c34412bbb625",
+      "username": "V31B_60255986",
+      "ready": false,
+      "online": true,
+      "operator": "frontline",
+      "loadout": [
+        "ar4",
+        "relay9",
+        "edge"
+      ]
+    }
+  },
+  {
+    "test": "nonleader weapon change reaches teammate lobby before matchmaking",
+    "pass": true
+  },
+  {
+    "test": "leader character change reaches nonleader lobby",
+    "pass": true
+  },
+  {
+    "test": "both browsers agree on party characters and kits",
+    "pass": true,
+    "detail": [
+      {
+        "party": [
+          {
+            "id": "3f11e5e1-4f00-4bae-a2a2-83f49b9113a9",
+            "operator": "kestrel",
+            "loadout": [
+              "hxr8",
+              "relay9",
+              "edge"
+            ],
+            "ready": true
+          },
+          {
+            "id": "cf9aee73-e7b1-4984-b0ee-c34412bbb625",
+            "operator": "frontline",
+            "loadout": [
+              "lancer7",
+              "relay9",
+              "edge"
+            ],
+            "ready": false
+          }
+        ],
+        "models": [
+          {
+            "id": "3f11e5e1-4f00-4bae-a2a2-83f49b9113a9",
+            "operator": "kestrel",
+            "weapon": "hxr8"
+          },
+          {
+            "id": "cf9aee73-e7b1-4984-b0ee-c34412bbb625",
+            "operator": "frontline",
+            "weapon": "lancer7"
+          }
+        ]
+      },
+      {
+        "party": [
+          {
+            "id": "3f11e5e1-4f00-4bae-a2a2-83f49b9113a9",
+            "operator": "kestrel",
+            "loadout": [
+              "hxr8",
+              "relay9",
+              "edge"
+            ],
+            "ready": true
+          },
+          {
+            "id": "cf9aee73-e7b1-4984-b0ee-c34412bbb625",
+            "operator": "frontline",
+            "loadout": [
+              "lancer7",
+              "relay9",
+              "edge"
+            ],
+            "ready": false
+          }
+        ],
+        "models": [
+          {
+            "id": "3f11e5e1-4f00-4bae-a2a2-83f49b9113a9",
+            "operator": "kestrel",
+            "weapon": "hxr8"
+          },
+          {
+            "id": "cf9aee73-e7b1-4984-b0ee-c34412bbb625",
+            "operator": "frontline",
+            "weapon": "lancer7"
+          }
+        ]
+      }
+    ]
+  }
+]

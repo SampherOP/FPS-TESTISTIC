@@ -1,0 +1,28 @@
+{
+  "changed_original_files": [
+    "START-HERE.txt",
+    "client/auth.js",
+    "server/auth.js",
+    "server/server.js",
+    "start.bat"
+  ],
+  "unchanged_original_count": 99,
+  "added_files": [
+    "LOGIN-REGISTER-FIX-V23.txt",
+    "package-lock.json",
+    "tests/auth-registration.test.js",
+    "validation/v23-browser-tests.json",
+    "validation/v23-check.txt",
+    "validation/v23-tests.txt"
+  ],
+  "deleted_original_files": [],
+  "account_data_included": false,
+  "automated_tests": {
+    "passed": 96,
+    "failed": 0
+  },
+  "browser_checks": {
+    "passed": 9,
+    "failed": 0
+  }
+}

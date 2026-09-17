@@ -1,0 +1,32 @@
+{
+  "base": "V23 login/register fix",
+  "changed_files": [
+    "START-HERE.txt",
+    "server/data-store.js",
+    "server/server.js",
+    "start.bat"
+  ],
+  "unchanged_files_count": 108,
+  "added_files": [
+    "WINDOWS-START-FIX-V24.txt",
+    "server/process-probe.js",
+    "tests/process-probe.test.js",
+    "tests/windows-start.test.js",
+    "validation/v24-check.txt",
+    "validation/v24-npm-smoke.json",
+    "validation/v24-tests.txt"
+  ],
+  "deleted_files": [],
+  "full_suite": {
+    "passed": 109,
+    "failed": 0
+  },
+  "npm_start_smoke": {
+    "npm_start_runs": 2,
+    "health_checks_passed": 2,
+    "graceful_shutdown_lock_cleanup_passed": 2,
+    "host_platform": "Linux",
+    "native_windows_run": false
+  },
+  "account_data_included": false
+}

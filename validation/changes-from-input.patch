@@ -1,0 +1,591 @@
+--- original/READ-ME-WORK-IN-PROGRESS.txt
++++ latest/READ-ME-WORK-IN-PROGRESS.txt
+@@ -1,17 +1,12 @@
+-LATEST WORK-IN-PROGRESS — user-requested immediate snapshot
++LATEST SNAPSHOT — STOPPED AT OWNER'S REQUEST, 14 September 2026
+ 
+-Is ZIP mein aapke 3 uploaded GLB character models aur abhi tak ke latest integration/rigging edits hain.
+-User ke kehne par further kaam/testing rok kar ye snapshot pack kiya gaya hai.
+-Animations, skeleton weights, hand/gun alignment aur gameplay visual checking abhi FINAL nahi hain.
+-Is snapshot par npm run check PASS hua (46 JavaScript modules). Final full regression suite aur gameplay verification complete nahi hui.
+-Purane TEST-REPORT.md aur YOUR-MODELS.txt mein pehle checkpoints ki details ho sakti hain; woh is incomplete snapshot ki final guarantee nahi hain.
++Read LATEST-HANDOFF.md first. It supersedes older completion/validation claims in this archive.
+ 
+-CHALANE KA TAREEQA
+-1. Purana game server Ctrl+C se band karein.
+-2. Latest private account data ka backup lein (%APPDATA%\HamuMaster on Windows).
+-3. Ye ZIP ALAG folder mein extract karein. Is folder mein npm install, phir npm start karein.
+-4. Browser: http://localhost:3000 (Ctrl+Shift+R se refresh).
+-5. UPGRADE-FIRST.txt aur LOCK-FIX.txt ko bhi follow karein.
++All current integration edits are included. Latest automated suite: 87 passed, 0 failed.
++Rigging polish and final visual validation are unfinished. Do not call this a fully validated release.
+ 
+-Save Accounts/lock-fix base included hai. Existing permanent data directory delete/replace na karein.
+-PRIVATE ZIP: supplied account data included hai. Public share/upload na karein.
++PRIVATE OWNER ZIP: original supplied account data and GLB assets are retained. Do not publish.
++
++Windows: stop old server, back up accounts, extract separately, use Node.js 20+, run npm install then npm start. Open http://localhost:3000.
++Keep the same HAMU_DATA_DIR / Windows user. Do not delete AppData account files or backups.
++See UPGRADE-FIRST.txt and LOCK-FIX.txt for existing safe upgrade/recovery instructions.
+--- original/client/models.js
++++ latest/client/models.js
+@@ -1,113 +1,153 @@
+ import * as THREE from '../vendor/three.module.js';
+ import { GLTFLoader } from '../vendor/GLTFLoader.js';
+ import * as SkeletonUtils from '../vendor/SkeletonUtils.js';
+-import { createWeapon } from './geometry.js';
++import { createWeapon, disposeVisual } from './geometry.js';
+ 
+-// The outer Group returned by createImportedCharacter is deliberately an identity
+-// game-space wrapper. Renderer position/rotation/scale writes therefore cannot undo
+-// the imported model's one-time meter-space conversion.
++// Game transforms belong exclusively to the identity outer wrapper. Source units,
++// orientation and grounding live inside it; GLBs/materials are never overwritten.
+ export const MODEL_DEFS=Object.freeze({
+-  sentinel:{file:'./assets/models/swat.glb',name:'SWAT',creator:'Quaternius',kind:'skinned',facing:Math.PI},
+-  kestrel:{file:'./assets/models/umair.glb',name:'FIELD SOLDIER',creator:'Umair Yaqub',kind:'static',facing:Math.PI/2},
+-  circuit:{file:'./assets/models/madtroll.glb',name:'TACTICAL SOLDIER',creator:'madtrollstudio',kind:'static',facing:Math.PI}
++ sentinel:{file:'./assets/models/swat.glb',name:'SWAT',creator:'Quaternius',kind:'skinned',facing:Math.PI},
++ kestrel:{file:'./assets/models/umair.glb',name:'FIELD SOLDIER',creator:'Umair Yaqub',kind:'static',facing:Math.PI/2},
++ circuit:{file:'./assets/models/madtroll.glb',name:'TACTICAL SOLDIER',creator:'madtrollstudio',kind:'static',facing:Math.PI}
+ });
+-let assetsPromise;const assets=new Map();const tmpBox=new THREE.Box3();
+-const V0=new THREE.Vector3(),V1=new THREE.Vector3(),V2=new THREE.Vector3(),Q0=new THREE.Quaternion();
+-
++let assetsPromise;const assets=new Map();const UP=new THREE.Vector3(0,1,0);
++const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
++const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a));return t*t*(3-2*t);};
+ export function loadCharacterAssets(onProgress){
+  if(assetsPromise)return assetsPromise;const loader=new GLTFLoader();
+- assetsPromise=Promise.all(Object.entries(MODEL_DEFS).map(([id,def])=>new Promise((resolve,reject)=>{
+-  const finish=gltf=>{const source=gltf.scene;source.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(source),s=b.getSize(new THREE.Vector3());if(!Number.isFinite(s.y)||s.y<.01)return reject(new Error(`${def.name}: invalid model bounds`));assets.set(id,{...def,source,clips:gltf.animations||[],height:s.y});resolve();};
+-  const embedded=globalThis.__HAMU_MODEL_DATA?.[id];
+-  if(embedded)try{const raw=atob(embedded),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);loader.parse(bytes.buffer,'',finish,reject);}catch(error){reject(error);}else loader.load(def.file,finish,x=>onProgress?.(id,x.loaded,x.total),error=>reject(new Error(`${def.name}: ${error?.message||'GLB load failed'}`)));
+- }))).then(()=>assets);return assetsPromise;
++ assetsPromise=Promise.all(Object.entries(MODEL_DEFS).map(async([id,def])=>{
++  let gltf;const embedded=globalThis.__HAMU_MODEL_DATA?.[id];
++  if(embedded){const bytes=Uint8Array.from(atob(embedded),c=>c.charCodeAt(0));gltf=await loader.parseAsync(bytes.buffer,'');}
++  else gltf=await loader.loadAsync(new URL('../'+def.file.replace('./',''),import.meta.url).href,x=>onProgress?.(id,x.loaded,x.total));
++  const source=gltf.scene;source.updateMatrixWorld(true);const box=new THREE.Box3().setFromObject(source);
++  if(!Number.isFinite(box.max.y)||box.max.y-box.min.y<.01)throw new Error(`${def.name}: invalid model bounds`);
++  assets.set(id,{...def,source,clips:gltf.animations||[],baked:null});
++ })).then(()=>assets).catch(error=>{assetsPromise=null;throw error;});return assetsPromise;
+ }
+ export function modelAssets(){return assets;}
+-
++export function importedReady(){return assets.size===Object.keys(MODEL_DEFS).length;}
+ function normalization(asset){
+- const source=asset.source;source.updateMatrixWorld(true);const rotate=new THREE.Matrix4().makeRotationY(asset.facing);const b=new THREE.Box3();
+- source.traverse(o=>{if(!o.isMesh)return;const g=o.geometry.getAttribute('position');for(let i=0;i<g.count;i++)b.expandByPoint(V0.fromBufferAttribute(g,i).applyMatrix4(o.matrixWorld).applyMatrix4(rotate));});
+- const size=b.getSize(V0),scale=1.9/Math.max(.001,size.y),center=b.getCenter(V1);
+- // Rotation happens in the inner visual group; translation completes grounding in game metres.
+- return {scale,rotation:asset.facing,position:new THREE.Vector3(-center.x*scale,-b.min.y*scale,-center.z*scale),matrix:new THREE.Matrix4().makeTranslation(-center.x*scale,-b.min.y*scale,-center.z*scale).multiply(new THREE.Matrix4().makeScale(scale,scale,scale)).multiply(rotate)};
++ const rotate=new THREE.Matrix4().makeRotationY(asset.facing),box=new THREE.Box3(),p=new THREE.Vector3();
++ asset.source.updateMatrixWorld(true);asset.source.traverse(o=>{if(!o.isMesh)return;const a=o.geometry.attributes.position;for(let i=0;i<a.count;i++)box.expandByPoint(p.fromBufferAttribute(a,i).applyMatrix4(o.matrixWorld).applyMatrix4(rotate));});
++ const scale=1.9/(box.max.y-box.min.y),center=box.getCenter(new THREE.Vector3()),position=new THREE.Vector3(-center.x*scale,-box.min.y*scale,-center.z*scale);
++ return {scale,position,rotation:asset.facing,matrix:new THREE.Matrix4().makeTranslation(...position.toArray()).multiply(new THREE.Matrix4().makeScale(scale,scale,scale)).multiply(rotate)};
+ }
+-function makeWrapper(asset){const root=new THREE.Group(),visual=new THREE.Group(),n=normalization(asset);visual.name='ImportedVisual';visual.position.copy(n.position);visual.rotation.y=n.rotation;visual.scale.setScalar(n.scale);root.add(visual);return {root,visual,n};}
+-function patch(aim,color){const material=new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.3,roughness:.65});const p=new THREE.Mesh(new THREE.CircleGeometry(.045,10),material);p.position.set(.31,.16,-.10);p.rotation.y=-Math.PI/2;aim.add(p);return material;}
+-function installGun(root,color){const aim=new THREE.Group();aim.name='WeaponAim';aim.position.set(0,1.23,-.02);root.add(aim);const gun=createWeapon('ar4');gun.position.set(.03,.04,.45);gun.scale.setScalar(.64); // Meter-space, compact third-person calibration.
+- gun.userData.grips.support.set(-.06,-.18,-.25); // Meter-space receiver grip calibrated to the supplied arms-down neutral pose.
+- aim.add(gun);return {aim,gun,teamMaterial:patch(aim,color)};}
+-function canonical(s){return (s||'').toLowerCase().replace(/[^a-z0-9]/g,'');}
+-function findBone(root,need){let hit=null;root.traverse(o=>{if(!hit&&o.isBone&&need.some(n=>canonical(o.name)===canonical(n)))hit=o;});return hit;}
+-function actionFor(d,name){const wanted=canonical(name);const exact=[...d.actions.keys()].find(k=>canonical(k).includes(wanted));return exact?d.actions.get(exact):null;}
+-
+-function makeSkinned(asset,id,color){
+- const {root,visual}=makeWrapper(asset);const clone=SkeletonUtils.clone(asset.source);visual.add(clone);const {aim,gun,teamMaterial}=installGun(root,color);
+- const mixer=new THREE.AnimationMixer(clone),actions=new Map();for(const clip of asset.clips){
+-  // Imported locomotion clips can contain root translation; remove that channel so a remote
+-  // player never drifts independently of the authoritative game position.
+-  const clean=clip.clone();clean.tracks=clean.tracks.filter(t=>!(/(^|[./])root([./]|$)/i.test(t.name)&&t.name.endsWith('.position')));actions.set(clip.name,mixer.clipAction(clean));
++function canonical(n){return (n||'').toLowerCase().replace(/[^a-z0-9]/g,'');}
++function boneBy(root,names){let result;root.traverse(o=>{if(o.isBone&&names.some(n=>canonical(n)===canonical(o.name)))result=o;});return result;}
++function world(o){return o.getWorldPosition(new THREE.Vector3());}
++function remember(bones){return new Map(bones.map(b=>[b,{position:b.position.clone(),quaternion:b.quaternion.clone()}]));}
++function reset(d){for(const [b,p] of d.rest){b.position.copy(p.position);b.quaternion.copy(p.quaternion);}}
++function makeStaticSkeleton(visual,id){
++ // Landmarks measured in the original, normalized arms-down/A-pose meshes, not a
++ // generic mannequin. Distinct chains prevent sleeves/boots/helmet following hips.
++ const umair=id==='kestrel';const joints=umair?{
++  hip:.99,knee:.54,ankle:.105,chest:1.38,neck:1.56,head:1.66,shoulder:[.225,1.50,.005],elbow:[.30,1.20,.015],wrist:[.305,.994,-.015],legX:.14
++ }:{hip:.91,knee:.48,ankle:.105,chest:1.30,neck:1.55,head:1.65,shoulder:[.235,1.49,.01],elbow:[.365,1.22,.005],wrist:[.467,.99,-.025],legX:.115};
++ const bones=[];function bone(name,parent,point){const b=new THREE.Bone();b.name=name;b.position.copy(new THREE.Vector3(...point));if(parent?.isBone)b.position.sub(world(parent));(parent||visual).add(b);visual.updateMatrixWorld(true);bones.push(b);return b;}
++ const hips=bone('Hips',null,[0,joints.hip,0]),spine=bone('Spine',hips,[0,1.14,0]),chest=bone('Chest',spine,[0,joints.chest,0]),neck=bone('Neck',chest,[0,joints.neck,0]),head=bone('Head',neck,[0,joints.head,0]);
++ const arms=[];for(const side of[-1,1]){const label=side<0?'L':'R',point=a=>[a[0]*side,a[1],a[2]],shoulder=bone('Shoulder'+label,chest,point([joints.shoulder[0]-.035,joints.shoulder[1]-.015,joints.shoulder[2]])),upper=bone('UpperArm'+label,shoulder,point(joints.shoulder)),lower=bone('LowerArm'+label,upper,point(joints.elbow)),hand=bone('Hand'+label,lower,point(joints.wrist));arms.push({side,shoulder,upper,lower,hand,gripTarget:new THREE.Vector3(),palm:new THREE.Vector3(0,umair?-.065:-.07,-.012)});}
++ const legs=[];for(const side of[-1,1]){const label=side<0?'L':'R',hip=bone('UpperLeg'+label,hips,[side*joints.legX,joints.hip,0]),knee=bone('LowerLeg'+label,hip,[side*joints.legX,joints.knee,-.005]),foot=bone('Foot'+label,knee,[side*joints.legX,joints.ankle,0]);legs.push({side,hip,knee,foot});}
++ for(const arm of arms){const p=world(arm.hand);arm.fingers=bone('Fingers'+(arm.side<0?'L':'R'),arm.hand,[p.x,p.y-.10,p.z]);arm.fingertips=bone('Fingertips'+(arm.side<0?'L':'R'),arm.fingers,[p.x,p.y-.155,p.z]);}
++ visual.updateMatrixWorld(true);return {bones,skeleton:new THREE.Skeleton(bones),hips,spine,chest,neck,head,arms,legs,joints};
++}
++function weightGeometry(g,rig,materialName,id){
++ const p=g.attributes.position,indices=new Uint16Array(p.count*4),weights=new Float32Array(p.count*4),mat=materialName.toLowerCase(),point=new THREE.Vector3();
++ const index=b=>rig.bones.indexOf(b),positions=new Map(rig.bones.map(b=>[b,world(b)]));
++ // Assign adjacent influences around joint cross-sections. An unrelated distant
++ // bone can never steal vertices; identical seam positions receive identical weights.
++ function chain(point,nodes){let closest=0,best=Infinity,tBest=0;for(let j=0;j<nodes.length-1;j++){const a=positions.get(nodes[j]),v=positions.get(nodes[j+1]).clone().sub(a),t=clamp(point.clone().sub(a).dot(v)/v.lengthSq()),dist=point.distanceToSquared(a.clone().addScaledVector(v,t));if(dist<best){best=dist;closest=j;tBest=t;}}
++  const t=smooth(.65,1,tBest);return [[index(nodes[closest]),1-t],[index(nodes[closest+1]),t]];
+  }
+- const arm={left:{upper:findBone(clone,['UpperArmL','LeftArm','mixamorigLeftArm']),lower:findBone(clone,['LowerArmL','LeftForeArm','mixamorigLeftForeArm']),hand:findBone(clone,['WristL','HandL','LeftHand','mixamorigLeftHand']),side:-1},right:{upper:findBone(clone,['UpperArmR','RightArm','mixamorigRightArm']),lower:findBone(clone,['LowerArmR','RightForeArm','mixamorigRightForeArm']),hand:findBone(clone,['WristR','HandR','RightHand','mixamorigRightHand']),side:1}};
+- root.userData={imported:true,importedKind:'skinned',operatorId:id,visual,source:clone,aim,gun,mixer,actions,clips:asset.clips,active:null,armRig:arm,teamMaterial,weaponMount:aim};return root;
++ for(let i=0;i<p.count;i++){
++  point.fromBufferAttribute(p,i);const x=Math.abs(point.x),y=point.y,arm=rig.arms[point.x<0?0:1],leg=rig.legs[point.x<0?0:1];let influence;
++  const headPart=/helmet|scope|glasses|torch|mask|material\.002/.test(mat)&&id==='kestrel'&&y>1.53;
++  const torsoPart=/vest|pouches|bag|belt|scarf/.test(mat);
++  const armBoundary=id==='kestrel'?.19+.04*(1-smooth(1.0,1.25,y)):.21+.15*(1-smooth(1.0,1.25,y));
++  const armBlend=(id==='kestrel'&&mat==='skin'&&y<1.25&&x>.22?1:smooth(armBoundary,armBoundary+.035,x))*(1-smooth(1.54,1.62,y))*smooth(.70,.80,y);
++  const isArm=!torsoPart&&!headPart&&armBlend>0;
++  if(headPart||y>1.61)influence=[[index(rig.head),1]];
++  else if(/watch/.test(mat))influence=[[index(arm.hand),1]];
++  else if(/glove/.test(mat))influence=chain(point,[arm.hand,arm.fingers,arm.fingertips]);
++  else if(isArm){const limb=chain(point,[arm.upper,arm.lower,arm.hand,arm.fingers,arm.fingertips]),body=chain(point,[rig.hips,rig.spine,rig.chest,rig.neck,rig.head]);influence=[...limb.map(([b,w])=>[b,w*armBlend]),...body.map(([b,w])=>[b,w*(1-armBlend)])];}
++  else if((/pants|shoes|pads/.test(mat)||y<rig.joints.hip+.04)&&!torsoPart){
++   if(/shoe/.test(mat)||y<.13)influence=[[index(leg.foot),1]];
++   else {influence=chain(point,[leg.hip,leg.knee,leg.foot]);const pelvis=smooth(rig.joints.hip-.13,rig.joints.hip+.02,y);influence=influence.map(([b,w])=>[b,w*(1-pelvis)]);influence.push([index(rig.hips),pelvis]);}
++  }else if(/belt/.test(mat))influence=[[index(rig.hips),1]];
++  else if(torsoPart)influence=[[index(/scarf/.test(mat)?rig.chest:rig.spine),1]];
++  else influence=chain(point,[rig.hips,rig.spine,rig.chest,rig.neck,rig.head]);
++  influence.forEach(([b,w],k)=>{indices[i*4+k]=b;weights[i*4+k]=w;});
++ }
++ g.setAttribute('skinIndex',new THREE.Uint16BufferAttribute(indices,4));g.setAttribute('skinWeight',new THREE.Float32BufferAttribute(weights,4));g.computeBoundingSphere();
+ }
+-
+-function bakeMesh(mesh,matrix){
+- const g=mesh.geometry.clone();g.applyMatrix4(matrix.clone().multiply(mesh.matrixWorld));if(g.getAttribute('normal'))g.normalizeNormals();g.computeBoundingSphere();return g;
++function cacheSoles(root){const d=root.userData;root.updateMatrixWorld(true);d.soleSamples=[];d.visual.traverse(o=>{if(!o.isSkinnedMesh)return;o.skeleton.update();const p=o.geometry.attributes.position;for(let i=0;i<p.count;i++){const v=o.getVertexPosition(i,new THREE.Vector3()).applyMatrix4(o.matrixWorld);if(root.worldToLocal(v).y<.16)d.soleSamples.push([o,i]);}});}
++function installWeapon(root,color){const aim=new THREE.Group();aim.name='WeaponAim';root.add(aim);const teamMaterial=new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.3});const patch=new THREE.Mesh(new THREE.CircleGeometry(.028,10),teamMaterial);patch.position.set(.28,1.4,0);patch.rotation.y=Math.PI/2;patch.geometry.userData.visualOwned=true;root.add(patch);Object.assign(root.userData,{aim,weaponMount:aim,teamMaterial});equipImportedWeapon(root,'ar4');}
++export function equipImportedWeapon(model,id){const d=model.userData;if(d.gun){d.aim.remove(d.gun);disposeVisual(d.gun);}const gun=createWeapon(id);gun.scale.setScalar(gun.userData.grips.style==='rifle'?.78:.85);d.aim.add(gun);d.gun=gun;return gun;}
++function createSkinned(asset,id,color){
++ const root=new THREE.Group(),visual=new THREE.Group(),n=normalization(asset);visual.name='ImportedVisual';visual.position.copy(n.position);visual.rotation.y=n.rotation;visual.scale.setScalar(n.scale);root.add(visual);const source=SkeletonUtils.clone(asset.source);visual.add(source);root.updateMatrixWorld(true);
++ const bones=[];source.traverse(o=>{if(o.isBone)bones.push(o);if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.frustumCulled=false;}});
++ const bone=n=>boneBy(source,[n]),arms=['L','R'].map((s,i)=>({side:i?1:-1,shoulder:bone('Shoulder'+s),upper:bone('UpperArm'+s),lower:bone('LowerArm'+s),hand:bone('Wrist'+s),palm:new THREE.Vector3(0,-.09,-.005),gripTarget:new THREE.Vector3()}));
++ const actions=new Map(),mixer=new THREE.AnimationMixer(source);for(const original of asset.clips){const clip=original.clone();clip.tracks=clip.tracks.filter(t=>!/^Root\.(position|quaternion)$/.test(t.name));for(const t of clip.tracks){if(t.name==='Body.position'){// Preserve breathing Y, lock horizontal locomotion in source coordinates (armature uses Z as vertical).
++    const base=bone('Body').position;for(let i=0;i<t.values.length;i+=3){t.values[i]=base.x;t.values[i+2]=base.z;}
++   }}actions.set(original.name.split('|').pop(),mixer.clipAction(clip));}
++ root.userData={imported:true,importedKind:'skinned',operatorId:id,visual,source,bones,rest:remember(bones),mixer,actions,active:null,clips:asset.clips,arms,armRig:{left:arms[0],right:arms[1]},hips:bone('Body'),spine:bone('Torso'),chest:bone('Chest'),head:bone('Head'),legs:['L','R'].map((s,i)=>({side:i?1:-1,hip:bone('UpperLeg'+s),knee:bone('LowerLeg'+s),foot:bone('Foot'+s)})),normalization:n};
++ for(const arm of root.userData.arms){arm.handBasis=arm.hand.getWorldQuaternion(new THREE.Quaternion());}cacheSoles(root);installWeapon(root,color);return root;
+ }
+-function addWeightAttributes(g,bones,materialName=''){
+- const p=g.getAttribute('position'),indices=new Uint16Array(p.count*4),weights=new Float32Array(p.count*4),mat=materialName.toLowerCase();
+- const distance=(point,a,b)=>{V1.subVectors(b,a);const l=Math.max(.00001,V1.lengthSq());const t=Math.max(0,Math.min(1,V0.subVectors(point,a).dot(V1)/l));return point.distanceToSquared(V2.copy(a).addScaledVector(V1,t));};
+- const endpoints=bones.map(b=>({a:b.getWorldPosition(new THREE.Vector3()),b:(b.children.find(x=>x.isBone)||b).getWorldPosition(new THREE.Vector3())}));
+- for(let i=0;i<p.count;i++){
+-  const point=V0.fromBufferAttribute(p,i);let pool=null,side=point.x<0?0:1;
+-  // The supplied meshes have arms-down / A-pose silhouettes. Distance alone can let the
+-  // carrier steal sleeve vertices, so constrain obvious sleeves/gloves to their own chain.
+-  if(/scope|torch|watch|glasses/.test(mat))pool=[0];
+-  else if(mat.includes('glove'))pool=side? [10,11,12]:[6,7,8];
+-  else if((Math.abs(point.x)>.17&&point.y>.42&&point.y<1.58)&&!mat.includes('pant')&&!mat.includes('shoe'))pool=side?[9,10,11,12]:[5,6,7,8];
+-  else if(mat.includes('pant')||mat.includes('shoe')||(point.y<.82&&Math.abs(point.x)<.28))pool=side?[16,17,18]:[13,14,15];
+-  const candidates=(pool||endpoints.map((_,index)=>index)).map(index=>({index,d:distance(point,endpoints[index].a,endpoints[index].b)})).sort((a,b)=>a.d-b.d).slice(0,4);
+-  let sum=0;for(let k=0;k<candidates.length;k++){const w=1/(.0015+candidates[k].d);weights[i*4+k]=w;indices[i*4+k]=candidates[k].index;sum+=w;}for(let k=0;k<4;k++)weights[i*4+k]/=sum||1;
++function createStatic(asset,id,color){
++ const root=new THREE.Group(),visual=new THREE.Group();visual.name='ImportedVisual';root.add(visual);const n=normalization(asset),rig=makeStaticSkeleton(visual,id);
++ if(!asset.baked){asset.baked=[];asset.source.updateMatrixWorld(true);asset.source.traverse(o=>{if(!o.isMesh)return;const geometry=o.geometry.clone().applyMatrix4(n.matrix.clone().multiply(o.matrixWorld));if(geometry.attributes.normal)geometry.normalizeNormals();weightGeometry(geometry,rig,(Array.isArray(o.material)?o.material:[o.material]).map(m=>m.name).join(' '),id);asset.baked.push({geometry,material:o.material,name:o.name});});}
++ for(const entry of asset.baked){const mesh=new THREE.SkinnedMesh(entry.geometry,entry.material);mesh.name=entry.name;mesh.bind(rig.skeleton);mesh.castShadow=true;mesh.receiveShadow=true;mesh.frustumCulled=false;visual.add(mesh);}
++ root.userData={imported:true,importedKind:'static',operatorId:id,visual,body:visual,...rig,rest:remember(rig.bones),gaitPhase:0};for(const arm of root.userData.arms){arm.handBasis=arm.hand.getWorldQuaternion(new THREE.Quaternion());}cacheSoles(root);installWeapon(root,color);return root;
++}
++export function createImportedCharacter(id='sentinel',teamColor='#d5a955'){const asset=assets.get(id)||assets.get('sentinel');if(!asset)throw new Error(`Character asset not loaded: ${id}`);return asset.kind==='skinned'?createSkinned(asset,id,teamColor):createStatic(asset,id,teamColor);}
++function rotateWorld(bone,axis,angle){if(!bone||!angle)return;bone.updateWorldMatrix(true,false);const parent=bone.parent.getWorldQuaternion(new THREE.Quaternion()),q=bone.getWorldQuaternion(new THREE.Quaternion());bone.quaternion.copy(parent.invert().multiply(new THREE.Quaternion().setFromAxisAngle(axis,angle).multiply(q)));bone.updateWorldMatrix(false,true);}
++function aimBoneAt(bone,child,target){bone.updateWorldMatrix(true,true);const from=world(child).sub(world(bone)).normalize(),to=target.clone().sub(world(bone)).normalize();if(!from.lengthSq()||!to.lengthSq())return;const q=new THREE.Quaternion().setFromUnitVectors(from,to).multiply(bone.getWorldQuaternion(new THREE.Quaternion()));bone.quaternion.copy(bone.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(q));bone.updateWorldMatrix(false,true);}
++export function solveArm(arm,target,model){
++ const {upper,lower,hand}=arm;if(!upper||!lower||!hand)return;model.updateMatrixWorld(true);const a=world(upper),b=world(lower),c=world(hand),l1=a.distanceTo(b),l2=b.distanceTo(c),dir=target.clone().sub(a),distance=clamp(dir.length(),Math.abs(l1-l2)+.0001,l1+l2-.0001);dir.normalize();
++ const pole=new THREE.Vector3(arm.side*.65,-1,.35).transformDirection(model.matrixWorld),bend=pole.addScaledVector(dir,-pole.dot(dir));if(bend.lengthSq()<.00001)bend.set(arm.side,0,0);bend.normalize();const along=(l1*l1-l2*l2+distance*distance)/(2*distance),height=Math.sqrt(Math.max(0,l1*l1-along*along));const elbow=a.clone().addScaledVector(dir,along).addScaledVector(bend,height);aimBoneAt(upper,lower,elbow);aimBoneAt(lower,hand,target);arm.gripTarget.copy(target);
++}
++export function poseImportedHands(model,{reload=0}={}){
++ const d=model?.userData,gun=d?.gun;if(!d?.imported||!gun)return;model.updateMatrixWorld(true);const grips=gun.userData.grips;
++ // Project the weapon mount into both arms' reachable volumes, not the wrists
++ // beyond their bone lengths. This handles the shorter SWAT arms and long rifles.
++ for(let pass=0;pass<12;pass++)for(const arm of d.arms){if(arm.side<0&&grips.style==='knife')continue;const q=model.getWorldQuaternion(new THREE.Quaternion()).multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler((d.posePitch||0)+(arm.side<0?Math.PI/2*(1-smooth(0,.18,reload)*(1-smooth(.78,1,reload))):0),0,arm.side<0?-.12:.12)));const start=world(arm.upper),elbow=world(arm.lower),hand=world(arm.hand),limit=start.distanceTo(elbow)+elbow.distanceTo(hand)-.012*model.scale.x;const target=gun.localToWorld((arm.side<0?grips.support:grips.rear).clone()).sub(arm.palm.clone().multiplyScalar(model.scale.x).applyQuaternion(q)),ray=target.clone().sub(start);const minimum=Math.abs(start.distanceTo(elbow)-elbow.distanceTo(hand))+.018*model.scale.x;if(ray.length()>limit||ray.length()<minimum){if(ray.length()<1e-7)ray.set(0,0,-.0001);const correction=ray.clone().multiplyScalar(clamp(ray.length(),minimum,limit)/ray.length()-1),origin=model.worldToLocal(world(d.aim)),moved=model.worldToLocal(world(d.aim).add(correction));d.aim.position.add(moved.sub(origin));model.updateMatrixWorld(true);}}
++ for(const arm of d.arms){
++  const anchor=(arm.side<0?grips.support:grips.rear).clone();if(arm.side<0&&gun.userData.parts?.pump)anchor.z+=gun.userData.parts.pump.position.z-(gun.userData.poseBase?.pump?.z||0);
++  let point=gun.localToWorld(anchor);
++  if(arm.side<0&&reload>0&&gun.userData.parts?.mag){const mag=gun.userData.parts.mag.localToWorld(new THREE.Vector3(0,-.035,0));point.lerp(mag,smooth(0,.18,reload)*(1-smooth(.78,1,reload)));}
++  if(arm.side<0&&grips.style==='knife')point=model.localToWorld(new THREE.Vector3(-.28,1.18,-.16));
++  // Palm is an offset from the wrist; solving the wrist directly to a receiver
++  // anchor would leave the visible fingers hanging below the grip.
++  const handQ=model.getWorldQuaternion(new THREE.Quaternion()).multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler((d.posePitch||0)+(arm.side<0?Math.PI/2*(1-smooth(0,.18,reload)*(1-smooth(.78,1,reload))):0),0,arm.side<0?-.12:.12)));
++  const wrist=point.clone().sub(arm.palm.clone().multiplyScalar(model.scale.x).applyQuaternion(handQ));solveArm(arm,wrist,model);
++  // Keep a stable authored hand basis rather than inheriting arbitrary elbow roll.
++  arm.hand.quaternion.copy(arm.hand.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(handQ.clone().multiply(arm.handBasis)));
++  // Skeletal glove curl for the two source meshes that have no finger rig.
++  if(arm.fingers){arm.fingers.rotation.x=1.10;arm.fingertips.rotation.x=.85;}
++  else {const axis=new THREE.Vector3(1,0,0).transformDirection(model.matrixWorld);for(const name of ['Index3','Middle3','Ring3','Pinky3'])rotateWorld(boneBy(d.source,[name+(arm.side<0?'L':'R')]),axis,.65);}
++  arm.palmTarget=point;arm.wristTarget=wrist;arm.palmWorldOffset=arm.palm.clone().multiplyScalar(model.scale.x).applyQuaternion(handQ);
+  }
+- g.setAttribute('skinIndex',new THREE.Uint16BufferAttribute(indices,4));g.setAttribute('skinWeight',new THREE.Float32BufferAttribute(weights,4));
++ model.updateMatrixWorld(true);
+ }
+-function buildStaticSkeleton(visual){
+- const bone=(name,parent,x,y,z)=>{const b=new THREE.Bone();b.name=name;b.position.set(x,y,z);parent.add(b);return b;};
+- const hips=bone('Hips',visual,0,.90,0),spine=bone('Spine',hips,0,.22,0),chest=bone('Chest',spine,0,.25,0),neck=bone('Neck',chest,0,.20,0),head=bone('Head',neck,0,.12,0);
+- const bones=[hips,spine,chest,neck,head],arms=[];for(const side of[-1,1]){const label=side<0?'L':'R',sh=bone(`Shoulder${label}`,chest,side*.22,.05,0),up=bone(`UpperArm${label}`,sh,side*.07,-.04,0),lo=bone(`LowerArm${label}`,up,side*.12,-.30,-.015),hand=bone(`Hand${label}`,lo,side*.06,-.29,-.015);bones.push(sh,up,lo,hand);arms.push({shoulder:sh,upper:up,lower:lo,hand,side,upperLength:up.position.distanceTo(lo.position),lowerLength:lo.position.distanceTo(hand.position),gripTarget:new THREE.Vector3()});}
+- const legs=[];for(const side of[-1,1]){const label=side<0?'L':'R',up=bone(`UpperLeg${label}`,hips,side*.11,-.02,0),lo=bone(`LowerLeg${label}`,up,0,-.43,.01),foot=bone(`Foot${label}`,lo,0,-.40,-.02);bones.push(up,lo,foot);legs.push({hip:up,knee:lo,foot,side});}
+- visual.updateMatrixWorld(true);return {bones,skeleton:new THREE.Skeleton(bones),arms,legs};
++function offsetLocalHeight(d,metres){const b=d.hips,p=world(b);p.y+=metres; b.position.copy(b.parent.worldToLocal(p));}
++export function animateImported(model,{dt=.016,speed=0,crouch=0,slide=0,grounded=true,airborne=false,verticalVelocity=0,reload=0,aiming=false,pitch=0,shot=0,time=0,moveX=0,moveZ=0}={}){
++ const d=model?.userData;if(!d?.imported)return false;dt=clamp(dt,0,.08);if(d.basePose){for(const [b,p] of d.basePose){b.position.copy(p.position);b.quaternion.copy(p.quaternion);}}else reset(d);d.visual.position.y=d.importedKind==='skinned'?d.normalization.position.y:0;model.updateMatrixWorld(true);
++ const blend=1-Math.exp(-12*dt);d.crouch=(d.crouch||0)+(Math.max(crouch,slide*.85)-(d.crouch||0))*blend;d.aimBlend=(d.aimBlend||0)+((aiming?1:0)-(d.aimBlend||0))*blend;d.posePitch=(d.posePitch||0)+(clamp(pitch,-1.25,1.25)-(d.posePitch||0))*blend;d.recoil=Math.max(shot,(d.recoil||0)*Math.exp(-18*dt));
++ const c=d.crouch,air=airborne||!grounded;d.airBlend=(d.airBlend||0)+((air?1:0)-(d.airBlend||0))*blend;const airPose=d.airBlend;d.state=reload>0?'reload':air?(verticalVelocity>0?'jump':'fall'):c>.5?'crouch':aiming?'aim':speed>5?'run':speed>.3?'walk':'idle';
++ const sideAxis=new THREE.Vector3(1,0,0).transformDirection(model.matrixWorld);
++ if(d.mixer){let desired=air||c>.3?'Idle_Gun':speed>5?'Run_Shoot':speed>.3?'Walk':aiming?'Idle_Gun_Pointing':'Idle_Gun';if(speed>5&&Math.abs(moveX)>Math.abs(moveZ))desired=moveX>0?'Run_Right':'Run_Left';else if(speed>5&&moveZ>0)desired='Run_Back';const action=d.actions.get(desired)||d.actions.get('Idle_Gun');if(action!==d.active){d.active?.fadeOut(.18);action.reset().setEffectiveTimeScale(1).setEffectiveWeight(1).fadeIn(.18).play();d.active=action;}d.mixer.update(dt);d.basePose=remember(d.bones);
++ }else{
++  d.gaitPhase+=dt*(speed>.3?Math.min(13,5+speed*.8):0);const stride=Math.sin(d.gaitPhase)*Math.min(.62,speed*.075)*(air?0:1)*(1-c*.65),back=moveZ>.1?-1:1;
++  const lateral=clamp(Math.abs(moveX)/Math.max(.01,speed)),forward=1-lateral;
++  for(const leg of d.legs){leg.hip.rotation.x=leg.side*stride*back*forward;leg.hip.rotation.z=leg.side*stride*lateral*Math.sign(moveX);leg.knee.rotation.x=-Math.max(0,leg.side*stride)*1.1;leg.foot.rotation.x=-leg.hip.rotation.x-leg.knee.rotation.x;leg.foot.rotation.z=-leg.hip.rotation.z;}
++  d.spine.rotation.x=.018*Math.sin(time*1.9)+Math.min(.12,speed*.012);d.chest.rotation.z=.009*Math.sin(time*1.9+.6);
++ }
++ model.updateMatrixWorld(true);
++ if(c>.001||airPose>.001){const tips=d.legs.map(leg=>leg.knee.worldToLocal(world(leg.foot)));offsetLocalHeight(d,-.43*c);for(const [i,leg] of d.legs.entries()){rotateWorld(leg.hip,sideAxis,.9*c+airPose*(verticalVelocity>0?.38:.20));rotateWorld(leg.knee,sideAxis,-1.65*c-airPose*.6);if(d.importedKind==='static')rotateWorld(leg.foot,sideAxis,.75*c+airPose*.25);else{leg.foot.position.copy(leg.foot.parent.worldToLocal(leg.knee.localToWorld(tips[i])));rotateWorld(leg.foot,sideAxis,airPose*.12);}}rotateWorld(d.spine,sideAxis,-.22*c);}
++ rotateWorld(d.chest,sideAxis,d.posePitch*.27-d.recoil*.055);rotateWorld(d.head,sideAxis,d.posePitch*.25);
++ d.aim.position.set(.11,1.37+.16*d.aimBlend-.43*c,.045+d.recoil*.035);d.aim.rotation.set(d.posePitch,-.08*(1-d.aimBlend),reload>0?-.15*Math.sin(reload*Math.PI):0);d.gun.position.set(0,0,0);d.gun.rotation.set(-d.recoil*.055,0,0);
++ // Root remains authoritative. Only the skeleton/presentation move; grounded visual
++ // feet are corrected in model metres, never by scaling the whole character.
++ d.visual.position.y=d.importedKind==='skinned'?d.normalization.position.y:0;model.updateMatrixWorld(true);
++ if(grounded&&!air){let min=Infinity;const q=new THREE.Vector3();for(const [o,i] of d.soleSamples){o.getVertexPosition(i,q).applyMatrix4(o.matrixWorld);min=Math.min(min,model.worldToLocal(q).y);}if(Number.isFinite(min))d.visual.position.y-=min;}
++ return true;
+ }
+-function makeStaticRig(asset,id,color){
+- const {root,visual,n}=makeWrapper(asset);
+- // Static primitives are already baked through n.matrix below, so unlike an authored GLB
+- // clone their visual container remains identity in game metres (no double scale/rotation).
+- visual.position.set(0,0,0);visual.rotation.set(0,0,0);visual.scale.set(1,1,1);
+- const rig=buildStaticSkeleton(visual);
+- // Bake each original primitive into a common normalized space. It retains its source material,
+- // indexed topology, normals and UVs; only positions acquire standard skin attributes.
+- asset.source.updateMatrixWorld(true);asset.source.traverse(o=>{if(!o.isMesh)return;const g=bakeMesh(o,n.matrix);const sourceMaterials=Array.isArray(o.material)?o.material:[o.material];addWeightAttributes(g,rig.bones,sourceMaterials.map(x=>x?.name||'').join(' '));const m=new THREE.SkinnedMesh(g,Array.isArray(o.material)?o.material.slice():o.material);m.name=o.name;m.bind(rig.skeleton);m.castShadow=true;m.receiveShadow=true;visual.add(m);});
+- const {aim,gun,teamMaterial}=installGun(root,color);root.userData={imported:true,importedKind:'static',operatorId:id,visual,body:visual,aim,gun,arms:rig.arms,legs:rig.legs,skeleton:rig.skeleton,bones:rig.bones,teamMaterial,gaitPhase:0,weaponMount:aim};return root;
+-}
+-export function createImportedCharacter(id='sentinel',teamColor='#d5a955'){const asset=assets.get(id);if(!asset)throw new Error(`Character asset not loaded: ${id}`);return asset.kind==='skinned'?makeSkinned(asset,id,teamColor):makeStaticRig(asset,id,teamColor);}
+-
+-function worldGrip(model,point,out){const d=model.userData;model.updateMatrixWorld(true);d.gun.localToWorld(out.copy(point));return out;}
+-function solveExistingArm(upper,lower,hand,target,side){if(!upper||!lower||!hand)return;
+- upper.parent.updateWorldMatrix(true,false);const start=upper.getWorldPosition(V0),elbow=lower.getWorldPosition(V1),restHand=hand.getWorldPosition(V2);const L1=start.distanceTo(elbow),L2=elbow.distanceTo(restHand);let dist=Math.max(Math.abs(L1-L2)+.002,Math.min(L1+L2-.002,start.distanceTo(target)));const dir=target.clone().sub(start).normalize();const forward=new THREE.Vector3(0,0,-1).transformDirection(upper.parent.matrixWorld),bend=new THREE.Vector3().crossVectors(forward,dir).normalize().multiplyScalar(side);const along=(L1*L1-L2*L2+dist*dist)/(2*dist),h=Math.sqrt(Math.max(0,L1*L1-along*along)),ep=start.clone().addScaledVector(dir,along).addScaledVector(bend,h);
+- const localEnd=upper.parent.worldToLocal(ep.clone()).sub(upper.position).normalize(),rest=lower.position.clone().normalize();upper.quaternion.setFromUnitVectors(rest,localEnd);upper.updateWorldMatrix(true,false);
+- const lowerEnd=lower.parent.worldToLocal(target.clone()).sub(lower.position).normalize();lower.quaternion.setFromUnitVectors(hand.position.clone().normalize(),lowerEnd);
+-}
+-function solveStaticArm(arm,target){solveExistingArm(arm.upper,arm.lower,arm.hand,target,arm.side);arm.gripTarget.copy(target);}
+-export function poseImportedHands(model,{reload=0}={}){
+- const d=model?.userData,grips=d?.gun?.userData?.grips;if(!d?.imported||!grips)return;
+- const rear=worldGrip(model,grips.rear,new THREE.Vector3()),support=worldGrip(model,grips.support,new THREE.Vector3());const mag=d.gun.userData.parts?.mag;
+- if(reload>0&&mag&&grips.style!=='knife'){d.gun.updateMatrixWorld(true);const p=mag.localToWorld(new THREE.Vector3(0,.07,0));support.lerp(p,Math.sin(Math.min(1,reload)*Math.PI));}
+- if(d.importedKind==='static'){for(const arm of d.arms)solveStaticArm(arm,arm.side<0?support:rear);return;}
+- const a=d.armRig;solveExistingArm(a.left.upper,a.left.lower,a.left.hand,support,-1);solveExistingArm(a.right.upper,a.right.lower,a.right.hand,rear,1);
+-}
+-export function animateImported(model,{dt=.016,speed=0,grounded=true,airborne=false,reload=0,aiming=false,pitch=0,time=0}={}){
+- const d=model?.userData;if(!d?.imported)return false;
+- if(d.importedKind==='skinned'){const desired=airborne?'Idle_Gun':aiming?'Idle_Gun_Pointing':speed>5?'Run_Shoot':speed>.35?'Walk':'Idle_Gun';const action=actionFor(d,desired);if(action&&d.active!==action){d.active?.fadeOut(.16);action.reset().fadeIn(.16).play();d.active=action;}d.mixer.update(dt);d.aim.rotation.x=pitch*.42;return true;}
+- const phase=d.gaitPhase=(d.gaitPhase||0)+dt*Math.min(12,1.5+speed*1.4),stride=Math.sin(phase)*Math.min(.55,speed*.07)*(grounded?1:.16);for(const leg of d.legs){leg.hip.rotation.x=leg.side*stride-(airborne?.18:0);leg.knee.rotation.x=Math.max(0,-leg.side*stride)*.9+(airborne?.24:0);}d.aim.position.y=1.23+(airborne?.04:0);d.aim.rotation.x=pitch*.45;return true;
+-}
+-export function importedReady(){return assets.size===Object.keys(MODEL_DEFS).length;}
+--- original/client/animation.js
++++ latest/client/animation.js
+@@ -1,21 +1,40 @@
+ import * as THREE from '../vendor/three.module.js';
+-import { animateImported, poseImportedHands } from './models.js';
++import { animateImported, poseImportedHands, solveArm } from './models.js';
+ 
+ // Visual-only procedural pose controller. It reads shared movement state; it never writes simulation state.
+ const DOWN=new THREE.Vector3(0,-1,0);
+ const v0=new THREE.Vector3(),v1=new THREE.Vector3(),v2=new THREE.Vector3(),v3=new THREE.Vector3();
+ const q0=new THREE.Quaternion();
++const smooth01=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};
+ export function animateWeapon(gun,{reload=0,shot=0,sprint=0,ads=0,time=0}={}) {
+-  if(!gun)return;const parts=gun.userData.parts||{};
++  if(!gun)return;const parts=gun.userData.parts||{};reload=Math.max(0,Math.min(1,reload));shot=Math.max(0,Math.min(1,shot));
+   if(!gun.userData.poseBase){const b={};for(const [key,part] of Object.entries(parts))if(part)b[key]={x:part.position.x,y:part.position.y,z:part.position.z,rx:part.rotation.x,ry:part.rotation.y,rz:part.rotation.z};gun.userData.poseBase=b;}
+-  const base=gun.userData.poseBase,curve=reload>0?Math.sin(Math.min(1,reload)*Math.PI):0;
++  const base=gun.userData.poseBase;
+   for(const [key,part] of Object.entries(parts)){if(!part||!base[key])continue;const p=base[key];part.position.set(p.x,p.y,p.z);part.rotation.set(p.rx,p.ry,p.rz);}
+-  if(parts.mag&&base.mag){parts.mag.position.y=base.mag.y-.18*curve;parts.mag.position.z=base.mag.z+.11*curve;parts.mag.rotation.x=base.mag.rx-.45*curve;}
+-  if(parts.bolt&&base.bolt)parts.bolt.position.z=base.bolt.z+.075*Math.max(shot,curve*.35);
+-  if(parts.slide&&base.slide)parts.slide.position.z=base.slide.z+.06*Math.max(shot,curve*.25);
++  // Magazine timing is deliberately phased: seated, hand-off/detach, fully in
++  // the support hand during travel, then a smooth return.  It never floats on a
++  // sinusoid through the receiver.
++  const detach=smooth01((reload-.10)/.08),returnPhase=smooth01((reload-.78)/.22),travel=detach*(1-returnPhase);
++  if(parts.mag&&base.mag){
++    const p=base.mag,down=.18*travel+.07*detach*(1-travel),forward=.11*travel+.03*detach*(1-travel);
++    parts.mag.position.set(p.x,p.y-down,p.z+forward);parts.mag.rotation.set(p.rx-.45*travel,p.ry,p.rz);
++    if(reload>=.78){parts.mag.position.y=p.y-.18*(1-returnPhase);parts.mag.position.z=p.z+.11*(1-returnPhase);parts.mag.rotation.x=p.rx-.45*(1-returnPhase);}
++  }
++  if(parts.bolt&&base.bolt)parts.bolt.position.z=base.bolt.z+.075*Math.max(shot,travel*.35);
++  if(parts.slide&&base.slide)parts.slide.position.z=base.slide.z+.06*Math.max(shot,travel*.25);
+   if(parts.pump&&base.pump)parts.pump.position.z=base.pump.z+.14*shot;
+-  if(parts.supportHand&&base.supportHand){parts.supportHand.position.y=base.supportHand.y-.20*curve;parts.supportHand.position.z=base.supportHand.z+.16*curve;parts.supportHand.rotation.z=base.supportHand.rz+.55*curve;}
+-  if(parts.rearHand&&base.rearHand)parts.rearHand.rotation.x=base.rearHand.rx+.11*shot+.09*Math.sin(time*2)*(1-ads);
++  // Reset bind translations, then solve two-bone IK: moving a wrist position
++  // directly would stretch the forearm instead of bending the elbow.
++  const view=parts.viewRig?.userData;
++  if(view)for(const arm of [view.rearArm,view.supportArm]){
++    arm.bones.forEach((b,i)=>{b.position.copy(arm.rest[i].position);b.quaternion.copy(arm.rest[i].quaternion);});gun.updateMatrixWorld(true);
++    let target=gun.localToWorld((arm.side<0?gun.userData.grips.support:gun.userData.grips.rear).clone());
++    const take=smooth01(reload/.18)*(1-smooth01((reload-.78)/.22));
++    if(arm.side<0&&parts.mag&&reload>0)target.lerp(parts.mag.localToWorld(new THREE.Vector3(0,-.035,0)),take);
++    else if(arm.side<0&&parts.pump)target.add(new THREE.Vector3(0,0,parts.pump.position.z-base.pump.z).transformDirection(gun.matrixWorld).multiplyScalar(Math.abs(parts.pump.position.z-base.pump.z)));
++    solveArm(arm,target,gun);arm.hand.quaternion.copy(arm.hand.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(gun.getWorldQuaternion(new THREE.Quaternion())));
++  }
++
+ }
+ 
+ // Two-bone analytic IK. Each joint's local -Y is aligned to the solved bone direction.
+@@ -49,11 +68,11 @@
+   }
+   return {rear:rear.clone(),support:support.clone()};
+ }
+-export function animateOperator(model,{dt=.016,speed=0,crouch=0,slide=0,grounded=true,airborne=false,reload=0,aiming=false,pitch=0,shot=0,time=0}={}) {
++export function animateOperator(model,{dt=.016,speed=0,crouch=0,slide=0,grounded=true,airborne=false,verticalVelocity=0,reload=0,aiming=false,pitch=0,shot=0,time=0,moveX=0,moveZ=0}={}) {
+   if(!model?.userData)return;
+   if(model.userData.imported){
+-    animateImported(model,{dt,speed,grounded,airborne,reload,aiming,pitch,shot,time});
+-    if(model.userData.gun)animateWeapon(model.userData.gun,{reload,shot,ads:aiming?1:0,time});
++    animateImported(model,{dt,speed,crouch,slide,grounded,airborne,verticalVelocity,reload,aiming,pitch,shot,time,moveX,moveZ});
++    if(model.userData.gun)animateWeapon(model.userData.gun,{reload,shot:model.userData.recoil||shot,ads:aiming?1:0,time});
+     poseImportedHands(model,{reload});
+     return;
+   }
+--- original/client/geometry.js
++++ latest/client/geometry.js
+@@ -56,6 +56,44 @@
+   const texture=textTexture(text,{color});
+   const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-1}));
+   mesh.position.set(x,y,z);if(floor)mesh.rotation.x=-Math.PI/2;else mesh.rotation.y=rotation;parent.add(mesh);return mesh;
++}
++
++// First-person arms are one continuous low-poly tube per side.  They are real
++// SkinnedMeshes (rather than a pile of floating glove boxes), so the wrist can
++// follow the magazine/pump while the shoulder and elbow remain visually connected.
++function viewArm(parent,side,points,color='#586866') {
++  const rig=new THREE.Group();rig.name=side<0?'SupportArmRig':'RearArmRig';parent.add(rig);
++  const bones=[],names=['Shoulder','Elbow','Wrist'];
++  points.forEach((point,i)=>{const bone=new THREE.Bone();bone.name=`${names[i]}${side<0?'L':'R'}`;bone.position.copy(point);if(i)bone.position.sub(points[i-1]);(i?bones[i-1]:rig).add(bone);bones.push(bone);});
++  const wrist=points[2];const rings=[...points,wrist.clone().add(new THREE.Vector3(0,.045,-.015)),wrist.clone().add(new THREE.Vector3(0,.075,-.015))];
++  const radial=[.105,.087,.073,.070,.032],segments=7,positions=[],skinIndex=[],skinWeight=[],indices=[];
++  const basisX=new THREE.Vector3(1,0,0),basisZ=new THREE.Vector3(0,0,1);
++  for(let ring=0;ring<rings.length;ring++)for(let k=0;k<segments;k++){
++    const a=k/segments*Math.PI*2,center=rings[ring],r=radial[ring];positions.push(center.x+basisX.x*Math.cos(a)*r+basisZ.x*Math.sin(a)*r,center.y+basisX.y*Math.cos(a)*r+basisZ.y*Math.sin(a)*r,center.z+basisX.z*Math.cos(a)*r+basisZ.z*Math.sin(a)*r);
++    if(ring===0){skinIndex.push(0,0,0,0);skinWeight.push(1,0,0,0);}else if(ring===1){skinIndex.push(0,1,0,0);skinWeight.push(.5,.5,0,0);}else if(ring===2){skinIndex.push(1,2,0,0);skinWeight.push(.5,.5,0,0);}else{skinIndex.push(2,2,0,0);skinWeight.push(1,0,0,0);}
++  }
++  for(let ring=0;ring<rings.length-1;ring++)for(let k=0;k<segments;k++){const a=ring*segments+k,b=ring*segments+(k+1)%segments,c=(ring+1)*segments+(k+1)%segments,d=(ring+1)*segments+k;indices.push(a,b,d,b,c,d);}
++  for(let k=1;k<segments-1;k++)indices.push((rings.length-1)*segments,(rings.length-1)*segments+k,(rings.length-1)*segments+k+1);
++  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setAttribute('skinIndex',new THREE.Uint16BufferAttribute(skinIndex,4));geometry.setAttribute('skinWeight',new THREE.Float32BufferAttribute(skinWeight,4));geometry.setIndex(indices);geometry.computeVertexNormals();geometry.computeBoundingSphere();geometry.userData.visualOwned=true;
++  geometry.addGroup(0,segments*6*2,0);geometry.addGroup(segments*6*2,indices.length-segments*6*2,1);
++  const mesh=new THREE.SkinnedMesh(geometry,[material(color),material('#263332')]);mesh.name=side<0?'SupportArm':'RearArm';mesh.castShadow=true;mesh.receiveShadow=true;rig.add(mesh);rig.updateMatrixWorld(true);mesh.bind(new THREE.Skeleton(bones));
++  return {rig,bones,mesh,side,upper:bones[0],lower:bones[1],hand:bones[2],gripTarget:new THREE.Vector3(),rest:bones.map(b=>({position:b.position.clone(),quaternion:b.quaternion.clone()}))};
++}
++function openOptic(parent,kind,color) {
++  // Four rails and a thin front aperture keep the sight readable without placing
++  // an opaque rectangular block in the player's ADS sightline.
++  const rail=(w,h,d,x,y,z,c,opts)=>box(parent,w,h,d,x,y,z,c,opts||{});
++  if(kind==='scope'){
++    for(const [x,y] of [[-.052,.18],[.052,.18],[-.052,.244],[.052,.244]])rail(.018,.018,.34,x,y,-.31,'#182126');
++    for(const z of[-.50,-.12]){const ring=new THREE.Mesh(new THREE.TorusGeometry(.062,.010,6,12),material('#9aa8a7'));ring.position.set(0,.212,z);parent.add(ring);}
++    rail(.026,.04,.08,0,.155,-.31,'#263137');rail(.026,.04,.08,0,.273,-.31,'#263137');
++  } else if(kind==='holo'){
++    rail(.014,.09,.11,-.05,.19,-.25,'#182126');rail(.014,.09,.11,.05,.19,-.25,'#182126');rail(.11,.014,.11,0,.15,-.25,'#182126');rail(.11,.014,.11,0,.23,-.25,'#182126');
++    const reticle=new THREE.Mesh(new THREE.TorusGeometry(.024,.004,5,10),material('#6d9c92',true));reticle.position.set(0,.19,-.309);parent.add(reticle);
++  } else if(kind==='red'){
++    rail(.012,.06,.10,-.035,.17,-.25,'#182126');rail(.012,.06,.10,.035,.17,-.25,'#182126');rail(.08,.012,.10,0,.144,-.25,'#182126');rail(.08,.012,.10,0,.196,-.25,'#182126');
++    const reticle=new THREE.Mesh(new THREE.TorusGeometry(.016,.003,5,10),material('#7ac4b5',true));reticle.position.set(0,.17,-.306);parent.add(reticle);
++  }
+ }
+ 
+ export function createWeapon(id,{hands=false}={}) {
+@@ -94,24 +132,37 @@
+     if(spec.pump){const pump=new THREE.Group();pump.position.z=-.53;gun.add(pump);add(pump,.19,.15,.20,0,.0,0,tan);for(const x of[-.075,.075])add(pump,.018,.10,.21,x,0,0,steel);moving.pump=pump;}
+     if(spec.mag){const mag=new THREE.Group();mag.position.set(0,-.20,-.17);gun.add(mag);add(mag,.105,spec.mag,.12,0,-spec.mag/2,0,dark,{rx:spec.compact?-.02:.14});add(mag,.12,.02,.13,0,.01,0,steel);moving.mag=mag;}
+     const bolt=new THREE.Group();bolt.position.set(.066,.035,-.20);gun.add(bolt);add(bolt,.022,.026,.19,0,0,0,steel);add(bolt,.042,.045,.045,0,.0,.08,dark);moving.bolt=bolt;
+-    if(spec.scope){cyl(frame,.061,.35,0,.18,-.31,dark);cyl(frame,.075,.075,0,.18,-.105,steel);cyl(frame,.075,.075,0,.18,-.50,steel);add(frame,.10,.075,.12,0,.105,-.20,polymer);add(frame,.024,.03,.03,.08,.12,-.18,w.color);}
+-    else if(spec.optic==='holo'){add(frame,.10,.09,.11,0,.15,-.25,dark);add(frame,.075,.052,.012,0,.17,-.307,'#6d9c92');add(frame,.13,.02,.05,0,.105,-.25,steel);}
+-    else if(spec.optic==='red'){add(frame,.07,.06,.10,0,.14,-.25,dark);add(frame,.045,.038,.008,0,.15,-.305,'#7ac4b5');add(frame,.10,.018,.04,0,.105,-.25,steel);}
++    if(spec.scope){openOptic(frame,'scope',w.color);add(frame,.10,.075,.12,0,.105,-.20,polymer);add(frame,.024,.03,.03,.08,.12,-.18,w.color);}
++    else if(spec.optic==='holo'){openOptic(frame,'holo',w.color);add(frame,.13,.02,.05,0,.105,-.25,steel);}
++    else if(spec.optic==='red'){openOptic(frame,'red',w.color);add(frame,.10,.018,.04,0,.105,-.25,steel);}
+     else {add(frame,.075,.02,.06,0,.14,-.26,steel);for(const x of[-.03,.03])add(frame,.012,.06,.02,x,.16,-.26,steel);}
+   }
++  // Grip anchors are authored at the actual receiver/foregrip/pump.  They are
++  // intentionally per weapon: a generic support point makes long guns float and
++  // puts the pistol support hand in front of the slide.
++  const gripTable={
++    ar4:{rear:[.055,-.145,-.06],support:[-.075,-.07,-.49],sightHeight:.17},
++    hxr8:{rear:[.055,-.145,-.06],support:[-.075,-.07,-.57],sightHeight:.19},
++    volt9:{rear:[.055,-.145,-.06],support:[-.075,-.065,-.39],sightHeight:.145},
++    pincer:{rear:[.055,-.145,-.06],support:[-.075,-.065,-.34],sightHeight:.175},
++    breach12:{rear:[.055,-.145,-.06],support:[-.075,-.07,-.53],sightHeight:.175},
++    lancer7:{rear:[.055,-.145,-.06],support:[-.075,-.07,-.64],sightHeight:.212},
++    relay9:{rear:[0,-.12,-.12],support:[-.075,-.12,-.06],sightHeight:.105},
++    flick45:{rear:[0,-.12,-.12],support:[-.075,-.12,-.06],sightHeight:.108},
++    edge:{rear:[0,-.10,-.015],support:[-.19,-.14,.035],sightHeight:.075}
++  }[id]||{rear:[0,-.14,-.08],support:[-.075,-.07,-.45],sightHeight:.14};
++  const grips={rear:new THREE.Vector3(...gripTable.rear),support:new THREE.Vector3(...gripTable.support),style:knife?'knife':pistol?'pistol':'rifle'};
+   if(hands){
+-    // Gloves are separate animated groups: they stay planted on pistol grip and handguard through reloads.
+-    const rear=new THREE.Group(),support=new THREE.Group();gun.add(rear,support);
+-    rear.position.set(.055,-.145,-.06);add(rear,.11,.13,.10,0,0,0,'#283332',{rx:-.28});add(rear,.14,.18,.16,.02,-.12,.02,'#586866',{rx:-.48});
+-    if(!pistol&&!knife){support.position.set(-.075,-.07,-.49);add(support,.12,.10,.13,0,0,0,'#283332',{rz:.16});add(support,.15,.19,.16,-.02,-.12,.02,'#586866',{rz:.42});}
+-    moving.rearHand=rear;moving.supportHand=support;
+-  }
+-  // Grip anchors are authored in weapon-local coordinates so third-person hands can
+-  // be solved against the actual animated weapon rather than posed beside it.
+-  const grips=knife?{rear:new THREE.Vector3(0,-.06,-.08),support:new THREE.Vector3(0,-.02,-.22),style:'knife'}
+-    :pistol?{rear:new THREE.Vector3(0,-.12,-.12),support:new THREE.Vector3(0,-.025,-.28),style:'pistol'}
+-    :{rear:new THREE.Vector3(0,-.14,-.08),support:new THREE.Vector3(0,-.055,-.49),style:'rifle'};
+-  mergeStatic(frame);gun.userData={muzzle:new THREE.Vector3(0,.025,-spec.length-.045),id,parts:moving,grips,base:{}};return gun;
++    // The arms begin below the frame and terminate at the authored grip points.
++    // Shared bones keep every visible surface connected as the wrist moves.
++    const viewRig=new THREE.Group();viewRig.name='ViewHands';gun.add(viewRig);
++    const rearShoulder=new THREE.Vector3(.42,-.76,.16),rearElbow=new THREE.Vector3(.27,-.39,.01),rearWrist=grips.rear.clone();
++    const supportShoulder=new THREE.Vector3(-.48,-.76,.16),supportElbow=new THREE.Vector3(-.27,-.39,-.20),supportWrist=grips.support.clone();
++    const rearArm=viewArm(viewRig,1,[rearShoulder,rearElbow,rearWrist]),supportArm=viewArm(viewRig,-1,[supportShoulder,supportElbow,supportWrist]);
++    moving.rearHand=rearArm.bones[2];moving.supportHand=supportArm.bones[2];moving.viewRig=viewRig;
++    viewRig.userData={rearArm,supportArm,continuous:true};
++  }
++  mergeStatic(frame);gun.userData={muzzle:new THREE.Vector3(0,.025,-spec.length-.045),id,parts:moving,grips,sightHeight:gripTable.sightHeight,base:{}};return gun;
+ }
+ 
+ function tapered(parent,top,bottom,height,x,y,z,color,segments=10){
+@@ -169,7 +220,7 @@
+   }
+ }
+ 
+-export function disposeVisual(root){root?.traverse(o=>{if(o.geometry?.userData?.visualOwned)o.geometry.dispose();});root?.userData?.teamMaterial?.dispose?.();}
++export function disposeVisual(root){const skeletons=new Set();root?.traverse(o=>{if(o.geometry?.userData?.visualOwned)o.geometry.dispose();if(o.isSkinnedMesh)skeletons.add(o.skeleton);});for(const skeleton of skeletons)skeleton.dispose();root?.userData?.mixer?.stopAllAction();root?.userData?.teamMaterial?.dispose?.();}
+ 
+ export function buildArena(scene) {
+   const root=new THREE.Group(),solid=new THREE.Group();root.add(solid);scene.add(root);
+--- original/client/renderer.js
++++ latest/client/renderer.js
+@@ -3,9 +3,9 @@
+ import { WEAPONS } from '../shared/weapons.js';
+ import { eyeHeight } from '../shared/physics.js';
+ import { B, wrapAngle, clamp } from '../shared/protocol.js';
+-import { buildArena, buildMenuScene, createOperator, createWeapon, textTexture, disposeVisual } from './geometry.js';
++import { buildArena, buildMenuScene, createWeapon, textTexture, disposeVisual } from './geometry.js';
+ import { animateOperator, animateWeapon } from './animation.js';
+-import { loadCharacterAssets, createImportedCharacter, importedReady, MODEL_DEFS } from './models.js';
++import { loadCharacterAssets, createImportedCharacter, equipImportedWeapon } from './models.js';
+ import { Effects, flashTexture } from './effects.js';
+ 
+ const BLUE='#76d6eb',ORANGE='#ee9864';
+@@ -25,7 +25,7 @@
+     this.weaponRig=new THREE.Group();this.fpScene.add(this.weaponRig);
+     this.flash=new THREE.Sprite(new THREE.SpriteMaterial({map:flashTexture(),color:'#ffdaa4',transparent:true,blending:THREE.AdditiveBlending,depthTest:false,depthWrite:false}));this.flash.visible=false;
+     this.fpScene.add(this.flash);this.modelReady=false;this.modelError=null;this.menuOperator=null;
+-    this.modelPromise=loadCharacterAssets((id,loaded,total)=>{this.modelProgress={id,loaded,total};}).then(()=>{this.modelReady=true;this.setMenuOperator(this.pendingMenuOperator||'sentinel');}).catch(error=>{this.modelError=error;console.error('Character model preload failed:',error);});
++    this.modelPromise=loadCharacterAssets((id,loaded,total)=>{this.modelProgress={id,loaded,total};}).then(()=>{this.modelReady=true;this.setMenuOperator(this.pendingMenuOperator||'sentinel');}).catch(error=>{this.modelError=error;console.error('Character model preload failed:',error);const notice=document.createElement('div');notice.setAttribute('role','alert');notice.textContent='Character models could not load. Keep the assets/models folder intact, run the Node server, then refresh this page. No account data has been reset.';notice.style.cssText='position:fixed;z-index:10000;bottom:12px;left:12px;right:12px;padding:14px;background:#742b28;color:white;font:14px system-ui';document.body.append(notice);});
+     this.applySettings(settings);this.resize();
+     this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(canvas.parentElement);window.addEventListener('resize',()=>this.resize());
+   }
+@@ -52,31 +52,15 @@
+   renderMenu(time,dt) {
+     const model=this.menuOperator;
+     if(!model){this.renderer.clear();this.renderer.render(this.menuScene,this.menuCamera);return;}
+-    // Cinematic menu idle: the operator slowly breathes, checks the rifle and
+-    // settles back into a ready stance. This is the actual 3D game model, not
+-    // a background image.
+-    const inspect=Math.sin(time*.72),slow=Math.sin(time*.36);
+-    model.rotation.y=Math.PI+.12+slow*.12;
+-    model.position.y=Math.sin(time*1.45)*.018;
+-    model.scale.setScalar(1.78+Math.sin(time*.9)*.012);
+-    const aim=model.userData.aim;
+-    aim.rotation.x=-.075+inspect*.055;
+-    aim.rotation.y=.055+Math.sin(time*.72+.9)*.13;
+-    aim.rotation.z=Math.sin(time*.72+.4)*.045;
+-    aim.position.y=1.23+Math.sin(time*1.45)*.012;
+-    if(model.userData.gun){
+-      const gun=model.userData.gun;
+-      gun.rotation.x=.02+Math.sin(time*.72+.7)*.035;
+-      gun.rotation.y=Math.sin(time*.72)*.045;
+-      gun.position.x=.09+Math.sin(time*.72+.4)*.018;
+-    }
++    model.rotation.y=Math.PI+.12+Math.sin(time*.36)*.08;
++    model.position.y=0;model.scale.setScalar(1.78);
+     animateOperator(model,{dt,speed:.18,grounded:true,aiming:true,pitch:-.08,time});
+     this.renderer.clear();this.renderer.render(this.menuScene,this.menuCamera);
+   }
+   setWeapon(id) {
+     if(this.lastWeapon===id)return;this.lastWeapon=id;
+     for(const model of this.fpModels.values())model.visible=false;
+-    if(!this.fpModels.has(id)){const model=createWeapon(id,{hands:true});this.weaponRig.add(model);this.fpModels.set(id,model);}
++    if(!this.fpModels.has(id)){const model=createWeapon(id,{hands:true});model.scale.setScalar(.82);this.weaponRig.add(model);this.fpModels.set(id,model);}
+     this.fpModel=this.fpModels.get(id);this.fpModel.visible=true;this.kick=0;
+   }
+   createRemote(p) {
+@@ -87,20 +71,16 @@
+     const item={model,name,operator:p.operator,weapon:'ar4',lastTeam:p.team};this.players.set(p.id,item);return item;
+   }
+   updateRemote(p,self,state,time,dt=.016) {
+-    let item=this.players.get(p.id);if(!item){item=this.createRemote(p);if(!item)return;}
++    let item=this.players.get(p.id);if(item&&item.operator!==p.operator){this.scene.remove(item.model);disposeVisual(item.model);item.name.material.map.dispose();item.name.material.dispose();this.players.delete(p.id);item=null;}if(!item){item=this.createRemote(p);if(!item)return;}
+     const model=item.model;model.visible=p.alive&&p.id!==self.id;if(!model.visible)return;
+     model.position.set(p.x,p.y,p.z);model.rotation.y=-p.yaw;model.scale.set(1,1,1);
+     const speed=Math.hypot(p.vx,p.vz),crouch=Math.max(0,Math.min(1,(1.78-p.height)/.70)),id=p.loadout[p.slot];
+     // Swap before posing so the hands solve against the selected weapon on this same frame.
+     if(item.weapon!==id){
+-      // Imported rigs solve their hands to stable game-space grip anchors. Never mount a
+-      // catalog weapon beneath an FBX/GLB wrist: source bone scale and rotation differ.
+-      (model.userData.weaponMount||model.userData.aim).remove(model.userData.gun);disposeVisual(model.userData.gun);
+-      const gun=createWeapon(id);gun.position.set(.03,.04,.45);gun.scale.setScalar(.64);gun.userData.grips.support.set(-.06,-.18,-.25);
+-      (model.userData.weaponMount||model.userData.aim).add(gun);model.userData.gun=gun;item.weapon=id;
++      equipImportedWeapon(model,id);item.weapon=id;
+     }
+-    const shot=item.firedAt!==p.firedAt?1:0;item.firedAt=p.firedAt;
+-    animateOperator(model,{dt,speed,crouch,slide:Math.min(1,(p.slide||0)/.68),grounded:p.grounded,airborne:!p.grounded,reload:p.reloadLeft>0?1-p.reloadLeft/Math.max(.01,p.reloadTotal):0,aiming:p.ads,pitch:p.pitch,shot,time});
++    const shot=item.firedAt!==undefined&&item.firedAt!==p.firedAt?1:0;item.firedAt=p.firedAt;
++    animateOperator(model,{dt,speed,crouch,slide:Math.min(1,(p.slide||0)/.68),grounded:p.grounded,airborne:!p.grounded,verticalVelocity:p.vy,moveX:p.vx*Math.cos(p.yaw)+p.vz*Math.sin(p.yaw),moveZ:-p.vx*Math.sin(p.yaw)+p.vz*Math.cos(p.yaw),reload:p.reloadLeft>0?1-p.reloadLeft/Math.max(.01,p.reloadTotal):0,aiming:p.ads,pitch:p.pitch,shot,time});
+     const friendly=state.mode!=='ffa'&&p.team===self.team;
+     item.name.visible=friendly;const teamColor=friendly?BLUE:ORANGE;model.userData.teamMaterial.color.set(teamColor);model.userData.teamMaterial.emissive.set(teamColor);model.userData.teamMaterial.emissiveIntensity=p.protectUntil>state.time?1.8:.35;
+   }
+@@ -127,12 +107,12 @@
+     const reloadProgress=self.reloadLeft>0?1-self.reloadLeft/Math.max(.01,self.reloadTotal):0,reloadCurve=self.reloadLeft>0?Math.sin(reloadProgress*Math.PI):0;
+     const sprint=!!(input.flags&(B.SPRINT|B.TACTICAL))&&speed>7&&!(input.flags&(B.FIRE|B.ADS));
+     const sway=reduced?0:Math.sin(time*speed*1.4)*Math.min(.012,speed*.0015)*(1-this.ads);
+-    this.weaponRig.position.set(.255*(1-this.ads)+sway,-.225+.098*this.ads-bob*.6-reloadCurve*.18,-.5+this.kick*.85);
+-    this.weaponRig.rotation.set(this.kick*.5+reloadCurve*.38+(sprint?.2:0),reloadCurve*.15+(sprint?-.18:0),-.022-reloadCurve*1.0+(sprint?-.25:0));
++    this.weaponRig.position.set(.255*(1-this.ads)+sway,-.225*(1-this.ads)-(this.fpModel.userData.sightHeight||.14)*this.fpModel.scale.y*this.ads-bob*.6-reloadCurve*.18,-.64+this.kick*.65);
++    this.weaponRig.rotation.set(this.kick*.5+reloadCurve*.38+(sprint?.2:0),reloadCurve*.15+(sprint?-.18:0),-.022*(1-this.ads)-reloadCurve*1.0+(sprint?-.25:0));
+     animateWeapon(this.fpModel,{reload:reloadProgress,shot:Math.min(1,this.kick/.12),sprint:sprint?1:0,ads:this.ads,time});
+     if(this.swing>0){const arc=Math.sin((1-this.swing/.3)*Math.PI);this.weaponRig.rotation.z-=arc*.8;this.weaponRig.position.z-=arc*.32;this.weaponRig.position.x-=arc*.18;}
+     this.flashTime-=dt;this.flash.visible=this.flashTime>0&&self.alive&&w.category!=='Melee';
+-    if(this.flash.visible){const muzzle=this.fpModel.userData.muzzle.clone();this.weaponRig.updateMatrixWorld();muzzle.applyMatrix4(this.weaponRig.matrixWorld);this.flash.position.copy(muzzle);this.flash.material.rotation=Math.random()*6.28;this.flash.scale.setScalar(.2+Math.random()*.1);}
++    if(this.flash.visible){const muzzle=this.fpModel.userData.muzzle.clone();this.weaponRig.updateMatrixWorld();this.fpModel.localToWorld(muzzle);this.flash.position.copy(muzzle);this.flash.material.rotation=Math.random()*6.28;this.flash.scale.setScalar(.2+Math.random()*.1);}
+     this.renderer.clear();this.renderer.render(this.scene,this.camera);
+     if(self.alive&&!(w.category==='Sniper rifle'&&this.ads>.85)){this.renderer.clearDepth();this.renderer.render(this.fpScene,this.fpCamera);}
+   }
+--- original/shared/weapons.js
++++ latest/shared/weapons.js
+@@ -19,8 +19,8 @@
+ }
+ export const OPERATORS = [
+   {id:'sentinel',name:'SWAT',role:'QUATERNIUS / ASSAULT',color:'#d5a955',tag:'01',description:'Imported SWAT character by Quaternius. Original embedded clips drive the ready, walk and run states.'},
+-  {id:'kestrel',name:'FIELD SOLDIER',role:'UMAIR YAQUB / STATIC RIG',color:'#65b8b4',tag:'02',description:'Imported Soldier by Umair Yaqub. Geometry is segmented into a lightweight articulated rig.'},
+-  {id:'circuit',name:'TACTICAL SOLDIER',role:'MADTROLLSTUDIO / STATIC RIG',color:'#a47db8',tag:'03',description:'Imported Soldier by madtrollstudio. Geometry is segmented into a lightweight articulated rig.'}
++  {id:'kestrel',name:'FIELD SOLDIER',role:'UMAIR YAQUB / SKELETAL RIG',color:'#65b8b4',tag:'02',description:'Imported Soldier by Umair Yaqub. Original geometry and materials use a generated weighted skeleton with blended gameplay posing.'},
++  {id:'circuit',name:'TACTICAL SOLDIER',role:'MADTROLLSTUDIO / SKELETAL RIG',color:'#a47db8',tag:'03',description:'Imported Soldier by madtrollstudio. Original geometry and materials use a generated weighted skeleton with blended gameplay posing.'}
+ ];
+ export function cleanOperator(value) { return OPERATORS.some(o => o.id === value) ? value : 'sentinel'; }
+ export const MODES = Object.freeze({
+--- original/tests/imported-model-rig.test.js
++++ latest/tests/imported-model-rig.test.js
+@@ -15,6 +15,9 @@
+ globalThis.__HAMU_MODEL_DATA=embedded;
+ await loadCharacterAssets();
+ const worldPosition=o=>o.getWorldPosition(new THREE.Vector3());
++// A grip touches the palm, not the wrist joint. The original WIP assertion
++// compared the wrong anatomical point; now require tighter real palm contact.
++const palm=arm=>worldPosition(arm.hand).add(arm.palmWorldOffset||new THREE.Vector3());
+ const grip=(model,p)=>model.userData.gun.localToWorld(p.clone());
+ 
+ test('actual GLBs normalize into identity game wrappers with continuous skinned static meshes',()=>{
+@@ -38,9 +41,9 @@
+    assert.ok(d.arms.some(a=>Math.abs(a.upper.rotation.x)+Math.abs(a.upper.rotation.y)+Math.abs(a.upper.rotation.z)>.05),`${id} arm IK rotates skin bones`);
+    // At least one auto-weighted arm vertex gets a changed bone-space transform in walk.
+    let changed=false;d.visual.traverse(mesh=>{if(!mesh.isSkinnedMesh||changed)return;mesh.skeleton.update();const p=mesh.geometry.getAttribute('position'),si=mesh.geometry.getAttribute('skinIndex');for(let i=0;i<p.count;i++){let arm=false;for(let k=0;k<4;k++)if([6,7,8,10,11,12].includes(si.array[i*4+k]))arm=true;if(!arm)continue;const before=new THREE.Vector3().fromBufferAttribute(p,i),after=mesh.applyBoneTransform(i,before.clone());if(after.distanceTo(before)>.002){changed=true;break;}}});assert.ok(changed,`${id} weighted arm vertices change`);
+-   for(const arm of d.arms){const desired=arm.side<0?grip(model,d.gun.userData.grips.support):grip(model,d.gun.userData.grips.rear);assert.ok(worldPosition(arm.hand).distanceTo(desired)<.07,`${id} hand on grip`);}
++   for(const arm of d.arms){const desired=arm.side<0?grip(model,d.gun.userData.grips.support):grip(model,d.gun.userData.grips.rear);assert.ok(palm(arm).distanceTo(desired)<.015,`${id} hand on grip`);}
+   }else{
+-   const a=d.armRig;assert.ok(worldPosition(a.left.hand).distanceTo(grip(model,d.gun.userData.grips.support))<.07,'SWAT support hand on grip');assert.ok(worldPosition(a.right.hand).distanceTo(grip(model,d.gun.userData.grips.rear))<.07,'SWAT rear hand on grip');
++   const a=d.armRig;assert.ok(palm(a.left).distanceTo(grip(model,d.gun.userData.grips.support))<.015,'SWAT support hand on grip');assert.ok(palm(a.right).distanceTo(grip(model,d.gun.userData.grips.rear))<.015,'SWAT rear hand on grip');
+   }
+  }
+ });

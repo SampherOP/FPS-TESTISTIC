@@ -1,0 +1,11 @@
+{
+  "unchanged_original_files": 217,
+  "changed_original_files": [
+    {
+      "file": "hamu-master/client/renderer.js",
+      "before_sha256": "63ab3857454b1857e8906af520484d64bd226f754b956d8d60e3b95ac12dc879",
+      "after_sha256": "49e6fa9310dd3d498beb962647e8b685b68f965e2f1b7c9dcc325af91b22d1a2"
+    }
+  ],
+  "missing_original_files": []
+}

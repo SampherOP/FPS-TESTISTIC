@@ -1,0 +1,124 @@
+[
+  {
+    "test": "five distinct loaded lobby cards",
+    "pass": true,
+    "detail": [
+      {
+        "id": "sentinel",
+        "loaded": true
+      },
+      {
+        "id": "kestrel",
+        "loaded": true
+      },
+      {
+        "id": "circuit",
+        "loaded": true
+      },
+      {
+        "id": "frontline",
+        "loaded": true
+      },
+      {
+        "id": "juggernaut",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "test": "immediate selection sentinel",
+    "pass": true,
+    "detail": {
+      "store": "sentinel",
+      "model": "sentinel"
+    }
+  },
+  {
+    "test": "immediate selection kestrel",
+    "pass": true,
+    "detail": {
+      "store": "kestrel",
+      "model": "kestrel"
+    }
+  },
+  {
+    "test": "immediate selection circuit",
+    "pass": true,
+    "detail": {
+      "store": "circuit",
+      "model": "circuit"
+    }
+  },
+  {
+    "test": "immediate selection frontline",
+    "pass": true,
+    "detail": {
+      "store": "frontline",
+      "model": "frontline"
+    }
+  },
+  {
+    "test": "immediate selection juggernaut",
+    "pass": true,
+    "detail": {
+      "store": "juggernaut",
+      "model": "juggernaut"
+    }
+  },
+  {
+    "test": "reload selection and saved rotation",
+    "pass": true,
+    "detail": {
+      "selected": "juggernaut",
+      "model": "juggernaut",
+      "yaw": 0.63
+    }
+  },
+  {
+    "test": "five character-page cards",
+    "pass": true,
+    "detail": [
+      {
+        "id": "sentinel",
+        "loaded": true
+      },
+      {
+        "id": "kestrel",
+        "loaded": true
+      },
+      {
+        "id": "circuit",
+        "loaded": true
+      },
+      {
+        "id": "frontline",
+        "loaded": true
+      },
+      {
+        "id": "juggernaut",
+        "loaded": true
+      }
+    ]
+  },
+  {
+    "test": "weapon equip synchronizes before queue",
+    "pass": true,
+    "detail": {
+      "store": [
+        "hxr8",
+        "relay9",
+        "edge"
+      ],
+      "server": [
+        "hxr8",
+        "relay9",
+        "edge"
+      ],
+      "model": [
+        "hxr8",
+        "relay9",
+        "edge"
+      ]
+    }
+  }
+]

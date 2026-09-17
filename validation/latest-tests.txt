@@ -1,0 +1,110 @@
+
+> hamu-master@1.2.4 test
+> node --test tests/*.test.js
+
+✔ register/login/me expose only public user and persist accounts/sessions (136.339746ms)
+✔ validation, case-insensitive uniqueness, and authentication errors have useful statuses (144.439946ms)
+✔ concurrent registration has one winner and no duplicate accounts (179.325077ms)
+✔ mutations require JSON and reject a mismatched browser origin; logout revokes token (68.17106ms)
+✔ all generated skin weights are finite, normalized and reference valid independent bones (212.659109ms)
+✔ source materials, texture references, vertex counts and GLB appearance are preserved (39.27473ms)
+✔ game wrapper transforms never undo normalization, and grounded crouches bend knees without scale squashing (80.565467ms)
+✔ all nine weapons use palm contacts, two-bone IK, magazine handoff and extreme pitch without nonfinite bones (1367.516546ms)
+✔ idle, locomotion, ADS, shooting, crouch, ascent, fall and reload select actual skeletal states (374.835912ms)
+✔ authored locomotion remains in-place after repeated complete clip loops (232.507375ms)
+✔ first-person has only weapons and continuous skinned arms; grips follow magazine without bone stretching (16.290386ms)
+✔ actual GLBs normalize into identity game wrappers with continuous skinned static meshes (132.353071ms)
+✔ static auto rigs deform limbs and all three hand endpoints reach their real gun grips (27.889017ms)
+✔ SWAT clones have independent authored skeleton state and repeated posing creates no geometry (92.372111ms)
+✔ live lock is refused and a failed contender close cannot remove its winner (16.341943ms)
+✔ close is idempotent and an old instance cannot delete the next owner lock (3.808096ms)
+✔ confirmed-dead legacy CRLF lock is recovered without changing data or IDs (5.814789ms)
+✔ new-format lock from a real forced-stopped child is recovered conservatively (60.842208ms)
+✔ concurrent stale contenders serialize recovery so exactly one owns the store (3.998392ms)
+✔ malformed, permission-ambiguous, foreign-host and live locks stay blocked (31.985988ms)
+✔ backup containment rejects a sibling prefix rather than relying on slash paths (1.267022ms)
+✔ listen EADDRINUSE releases the startup store lock and ordinary restarts remain safe (16.551597ms)
+✔ FIFO compatible parties pack without splitting and assign each team at most four (2.911471ms)
+✔ partial queue waits then dispatches exactly once and can be cancelled by any member (0.391127ms)
+✔ late human backfill removes a bot from the correct team without overcapacity (1.161404ms)
+✔ backtracking keeps FIFO tickets and packs 1,1,3,3 into two balanced bins (0.448514ms)
+✔ backfill skips an oldest party that cannot fit and accepts the next compatible one (0.35963ms)
+✔ mode rejection leaves an oversized party unchanged (0.181483ms)
+✔ departing match users decrement human count and records can be removed (0.290837ms)
+✔ selection backtracks to fill eight players instead of greedily starving later compatible tickets (0.24009ms)
+✔ FFA selection fills capacity without team packing constraints (0.304547ms)
+✔ real authenticated clients create/join room, see snapshots, balanced teams, movement and shot events (426.387723ms)
+✔ malformed input is rejected without advancing accepted sequence (182.750799ms)
+✔ unauthenticated websocket and mismatched browser origin are rejected (75.840283ms)
+✔ static handler serves allowlisted files and rejects private paths/methods (8.618188ms)
+✔ server profile survives restart and sanitizes client-owned state (7.609734ms)
+✔ Quick Play keeps FIND PLAYERS and its live counter without the duplicate floating dock (2.126222ms)
+✔ Returning to Quick Play hides the dock while other menu tabs retain their existing shortcut (0.370276ms)
+✔ Queue cancellation, idle state and active gameplay keep the dock hidden (1.285419ms)
+✔ Quick Play queue status uses non-clickable FIND PLAYERS presentation (1.089195ms)
+✔ Quick Play queue counter and loading indicator are visibly animated and status-only (0.277416ms)
+✔ standing clearance includes suspended ceilings (0.696856ms)
+✔ a departed grenade owner cannot cause friendly fire (5.92235ms)
+✔ departed source attribution does not access a missing inventory (0.66625ms)
+✔ new code directory migrates a complete legacy project store once without changing account IDs or hashes (134.908358ms)
+✔ email registration/login/linking is private, unique and legacy accounts remain usable (168.192765ms)
+✔ store lock, corrupt/missing-account safety, bounded backup and cautious restore prevent destructive starts (52.84362ms)
+✔ movement respects collider and speed limits (8.072028ms)
+✔ damage absorbs armor and headshots amplify, friendly fire is blocked (1.598961ms)
+✔ spawn protection prevents damage then expires (0.745019ms)
+✔ reload completes and weapon switching resets cadence (1.05879ms)
+✔ fire cadence and ammo are authoritative (1.270918ms)
+✔ melee damages nearby target only in front (1.677768ms)
+✔ frag fuse explodes through clear line but not wall (4.465764ms)
+✔ dead player respawns after three seconds (0.695545ms)
+✔ TDM score and limit end match (0.548083ms)
+✔ FFA leader and limit end match (0.913661ms)
+✔ domination captures, scores, and contested zones pause progress (2.501465ms)
+✔ time limit ends tied team match (0.320321ms)
+✔ input validation rejects malformed, nonfinite, range, flags, and sequence packets (0.210947ms)
+✔ input packing and snapshot player roundtrip preserve protocol fields (0.245249ms)
+✔ bot moves and produces valid input (5.70844ms)
+✔ traceShot stops at world geometry (0.754062ms)
+✔ kill emits attribution and replenishes reserve ammo (0.407762ms)
+✔ snapshot exposes objective and active grenade state (0.462795ms)
+✔ jump and crouch alter grounded state and height (0.662304ms)
+✔ slide consumes stamina and decays to completion (1.202625ms)
+✔ auto restart begins a fresh round after match end (0.450727ms)
+✔ world snapshots roundtrip basic match identity and scores (0.874042ms)
+✔ live friend requests cancel on both sides, presence updates, and reconnect does not leave an offline party (368.749955ms)
+✔ real party leader/ready gate, cancellation, random-player queue, bot fill, and replacement after departure (1144.244335ms)
+✔ party invites enforce recipient ownership, expiry, duplicates and current friend relationship (662.510846ms)
+✔ team parties cap at four, FFA can expand, rejected mode changes are atomic, and departure transfers leadership (593.047727ms)
+✔ late two-player party replaces two distinct bots, and ended rooms do not accept backfill (575.288196ms)
+✔ completed queued match returns the same squad to lobby and requires fresh member readiness (325.080408ms)
+✔ eight real queued FFA players start immediately, without bots or waiting for timeout (762.126672ms)
+✔ replacement sockets cannot create duplicate players and custom room bot replacement stays within capacity (228.002252ms)
+✔ friend request authorization, duplicate race, accept, decline, cancel, and symmetric removal (112.652216ms)
+✔ search is bounded, exact-first, presence-aware, and does not expose passwords or emails (101.42424ms)
+✔ social graph survives restart with atomic JSON data (103.511424ms)
+✔ local progress is isolated by permanent account ID, canonical names cannot be overwritten (2.11141ms)
+✔ registration does not silently assign old anonymous progress to a new account (0.249425ms)
+✔ account name remains correct when browser storage is blocked (0.184878ms)
+✔ server profile is preferred over stale local cache and saves updated loadout (3.669569ms)
+✔ all original weapons build detailed animated silhouettes with stable muzzle metadata (70.520477ms)
+✔ three operators keep articulated human tactical rigs under movement poses (31.609734ms)
+✔ operator hands stay on authored weapon grips, including the moving reload magazine (19.252883ms)
+ℹ tests 87
+ℹ suites 0
+ℹ pass 87
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11561.569017
+
+V10 HEAVY IMAGE EDITOR CHECKS
+- client/ui.js syntax: PASS
+- server/server.js syntax: PASS
+- scripts/check.js: PASS (49 JS modules/imports/assets)
+- image drag/drop browser navigation prevention: implemented
+- selected UI element image upload + persistent background-image: implemented
+- lobby menu background upload + persistent position/size: implemented
+- authenticated admin-only image upload endpoint: implemented
+- max image upload: 8 MB; PNG/JPG/WebP signature validation: implemented
+- full npm test: 63 passed, 5 failed because ws dependency was unavailable in the build environment (npm install timed out); failures are dependency-startup failures, not assertion failures.

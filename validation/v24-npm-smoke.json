@@ -1,0 +1,7 @@
+{
+  "npm_start_runs": 2,
+  "health_checks_passed": 2,
+  "graceful_shutdown_lock_cleanup_passed": 2,
+  "host_platform": "Linux",
+  "native_windows_run": false
+}

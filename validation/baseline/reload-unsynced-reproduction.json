@@ -1,0 +1,10 @@
+{
+  "before": "juggernaut",
+  "target": "frontline",
+  "pending": {
+    "selected": "frontline",
+    "remoteHealthy": false
+  },
+  "after": "juggernaut",
+  "reproduced": true
+}

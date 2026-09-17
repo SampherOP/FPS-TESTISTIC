@@ -1,0 +1,217 @@
+--- a/START-HERE.txt
++++ b/START-HERE.txt
+@@ -1,10 +1,20 @@
+-HAMU MASTER — START HERE
++HAMU MASTER V24 — START HERE
+ 
+-1. Double-click start.bat.
+-2. It keeps the fixed local port at 3003 (http://localhost:3003), starts the Node server automatically, waits briefly for /health, and opens the lobby in your default browser.
+-3. No manual CMD, npm install, or npm start is required. The launcher starts the server in its own child CMD with the admin credential environment inherited reliably. If ws is missing, start.bat installs dependencies automatically.
+-4. Admin login: name Samphor. The configured admin credential is provisioned by start.bat and no first-run password prompt is shown.
+-5. Existing account/private data is preserved. The launcher never deletes or resets the data directory.
++WINDOWS: Double-click start.bat.
++- Requires Node.js 20+ with npm.
++- Installs the game dependency if missing.
++- Runs on http://localhost:3003 and opens the browser only after successful startup.
++- Keep the server window OPEN while playing. Press Ctrl+C to stop safely.
++- A startup error stays visible; the launcher no longer force-kills Node processes or hides its server in the background.
+ 
+-IMPORTANT SECURITY NOTE
+-The requested fixed admin password is supplied by the launcher through HM_ADMIN_PASSWORD. Keep this project folder private because anyone who can read the BAT can see that credential.
++COMMAND PROMPT: npm install, then npm start.
++- npm start defaults to http://localhost:3000 (or your PORT environment setting).
++- Open the address printed by the server. Use one server/start method at a time.
++
++EXISTING ACCOUNTS
++No account files are deleted or reset. Keep the private HamuMaster data folder and any HAMU_DATA_DIR setting unchanged.
++The login/register fix from V23 is included.
++See WINDOWS-START-FIX-V24.txt if startup reports an account-store lock.
++
++SECURITY
++The existing admin configuration remains unchanged. The launcher contains an admin credential, so keep this folder private.
+--- a/server/data-store.js
++++ b/server/data-store.js
+@@ -2,6 +2,7 @@
+ import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
+ import { homedir, hostname as osHostname } from 'node:os';
+ import { randomBytes } from 'node:crypto';
++import { probeProcess } from './process-probe.js';
+ 
+ export const STORE_FILES = ['accounts.json', 'sessions.json', 'social.json', 'profiles.json'];
+ const VERSION = 1;
+@@ -100,11 +101,9 @@
+     this.backupMade = false;
+   }
+ 
+-  // kill(pid, 0) never terminates a process. Only ESRCH is proof that this host has no such PID.
+-  static defaultPidProbe(pid) {
+-    try { process.kill(pid, 0); return 'alive'; }
+-    catch (error) { return error?.code === 'ESRCH' ? 'dead' : 'unknown'; }
+-  }
++  // Signal 0 never terminates a process. Windows ambiguous errors receive a read-only
++  // OS query before deciding whether an abandoned lock can safely be recovered.
++  static defaultPidProbe(pid) { return probeProcess(pid); }
+ 
+   async _probe(pid) {
+     try {
+@@ -195,7 +194,7 @@
+       if (!lock.legacy && lock.hostname !== this.hostname) throw lockError(this.dataDir, `The lock belongs to host ${JSON.stringify(lock.hostname)}, not this host. It was not removed automatically; stop and verify the owner on that host.`);
+       const state = await this._probe(lock.pid);
+       if (state === 'alive') throw lockError(this.dataDir, `PID ${lock.pid}${lock.legacy ? ' (legacy lock)' : ''} is still running. Stop that HAMU MASTER server with Ctrl+C before retrying.`);
+-      if (state !== 'dead') throw lockError(this.dataDir, `PID ${lock.pid} could not be proven stopped, so the lock was not removed automatically. Verify the owner before manual recovery: ${this.lockFile}`);
++      if (state !== 'dead') throw lockError(this.dataDir, `PID ${lock.pid} could not be proven stopped, so the lock was not removed automatically. Close other HAMU MASTER server windows with Ctrl+C and retry. If the old server window cannot be found, restart Windows once and retry. Do not delete accounts or the HamuMaster folder. Lock kept at: ${this.lockFile}`);
+       // Rename is atomic within this directory. Unlike unlinking after a stale read, it leaves no interval
+       // in which another cooperating contender can create a lock that this recovery then deletes.
+       const quarantine = join(this.dataDir, `.hamu-store.stale-${lock.owner || `legacy-${lock.pid}`}-${randomBytes(6).toString('hex')}`);
+--- a/server/server.js
++++ b/server/server.js
+@@ -1,4 +1,5 @@
+ import http from 'node:http';
++import { execFile } from 'node:child_process';
+ import { randomBytes, randomUUID, createHash } from 'node:crypto';
+ import { fileURLToPath, pathToFileURL } from 'node:url';
+ import { dirname, resolve, join } from 'node:path';
+@@ -259,4 +260,19 @@
+   }
+   return{start,close,server,wss,rooms,clients,auth,social,profiles,dataStore,matchmaking:mm,tick};
+ }
+-if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){const app=createGameServer();app.start().then(a=>console.log(`\nHAMU MASTER\nClient: http://localhost:${a.port}\nWebSocket: ws://localhost:${a.port}/ws\n`)).catch(e=>{console.error(e);process.exitCode=1;});for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>app.close().then(()=>process.exit(0)));}
++if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
++  const app=createGameServer();
++  app.start().then(a=>{
++    const url=`http://localhost:${a.port}`;
++    console.log(`\nHAMU MASTER\nClient: ${url}\nWebSocket: ws://localhost:${a.port}/ws\nKeep this server window open. Press Ctrl+C to stop safely.\n`);
++    // The launcher opens the browser only AFTER this process acquired the store and port.
++    // No existing Node process is killed and a failed startup never opens an old server tab.
++    if(process.platform==='win32'&&process.env.HM_OPEN_BROWSER==='1'){
++      const cmd=join(process.env.SystemRoot||'C:\\Windows','System32','cmd.exe');
++      execFile(cmd,['/d','/c','start','',url],{windowsHide:true,timeout:5000},error=>{
++        if(error)console.warn(`Could not open the browser automatically. Open ${url} manually.`);
++      });
++    }
++  }).catch(e=>{console.error(e);process.exitCode=1;});
++  for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>app.close().then(()=>process.exit(0)));
++}
+--- a/start.bat
++++ b/start.bat
+@@ -1,65 +1,55 @@
+-@echo off
+-setlocal DisableDelayedExpansion
+-cd /d "%~dp0"
+-set "PORT=3003"
+-set "HOST=127.0.0.1"
+-rem Fixed whitelisted admin credentials requested for HAMU MASTER.
+-rem Note: this BAT contains the admin password in plain text, so keep the folder private.
+-set "HM_ADMIN_PASSWORD=Iloveu@143143"
+-where node >nul 2>nul
+-if errorlevel 1 (
+-  echo Node.js 20+ is required.
+-  pause
+-  exit /b 1
+-)
+-where npm >nul 2>nul
+-if errorlevel 1 (
+-  echo npm was not found. Reinstall Node.js 20+ with npm included.
+-  pause
+-  exit /b 1
+-)
+-if not exist package.json (
+-  echo package.json not found. Start this BAT from the HAMU MASTER project folder.
+-  pause
+-  exit /b 1
+-)
+-if not exist node_modules\ws\package.json (
+-  echo.
+-  echo Installing HAMU MASTER server dependency: ws...
+-  call npm install --no-audit --no-fund
+-  if errorlevel 1 (
+-    echo.
+-    echo npm install failed. Check your internet connection and try start.bat again.
+-    pause
+-    exit /b 1
+-  )
+-)
+-rem If an older HAMU MASTER build is still occupying port 3003, stop only that Node process.
+-rem This prevents the browser from reconnecting to an old server that has no initialized admin.
+-for /f "tokens=5" %%P in ('netstat -ano ^| findstr /R /C:":%PORT% .*LISTENING"') do (
+-  for /f "tokens=1" %%I in ('tasklist /FI "PID eq %%P" /NH 2^>nul') do (
+-    if /I "%%I"=="node.exe" (
+-      echo Stopping old HAMU MASTER Node server on port %PORT% (PID %%P)...
+-      taskkill /PID %%P /T /F >nul 2>nul
+-    )
+-  )
+-)
+-echo.
+-echo HAMU MASTER V23 - LOGIN REGISTER FIX
+-echo Server: http://localhost:%PORT%
+-echo Admin: Samphor
+-echo.
+-rem Start the server in the background, then open the lobby automatically.
+-start "HAMU MASTER SERVER" /b cmd.exe /d /c "cd /d ""%~dp0"" && node server\server.js"
+-set "READY=0"
+-for /l %%N in (1,1,30) do (
+-  powershell -NoProfile -Command "$r=$null; try {$r=Invoke-WebRequest -UseBasicParsing -TimeoutSec 1 http://127.0.0.1:%PORT%/health; if($r.StatusCode -ge 200){exit 0}} catch {}; exit 1" >nul 2>nul
+-  if not errorlevel 1 (set "READY=1" & goto :openGame)
+-  timeout /t 1 /nobreak >nul
+-)
+-:openGame
+-start "" "http://localhost:%PORT%"
+-if "%READY%"=="0" echo Server is still starting; the browser will connect when ready.
+-echo Game opened at http://localhost:%PORT%
+-echo You can close this window; the HAMU MASTER server is running separately.
+-exit /b 0
++@echo off
++setlocal DisableDelayedExpansion
++cd /d "%~dp0"
++set "PORT=3003"
++set "HOST=127.0.0.1"
++rem Fixed whitelisted admin credentials requested for HAMU MASTER.
++rem Note: this BAT contains the admin password in plain text, so keep the folder private.
++set "HM_ADMIN_PASSWORD=Iloveu@143143"
++where node >nul 2>nul
++if errorlevel 1 (
++  echo Node.js 20+ is required.
++  pause
++  exit /b 1
++)
++where npm >nul 2>nul
++if errorlevel 1 (
++  echo npm was not found. Reinstall Node.js 20+ with npm included.
++  pause
++  exit /b 1
++)
++if not exist package.json (
++  echo package.json not found. Start this BAT from the HAMU MASTER project folder.
++  pause
++  exit /b 1
++)
++if not exist node_modules\ws\package.json (
++  echo.
++  echo Installing HAMU MASTER server dependency: ws...
++  call npm install --no-audit --no-fund
++  if errorlevel 1 (
++    echo.
++    echo npm install failed. Check your internet connection and try start.bat again.
++    pause
++    exit /b 1
++  )
++)
++rem Keep the server visible and do not force-kill processes on a port.
++rem The server opens the browser only after it has successfully started.
++set "HM_OPEN_BROWSER=1"
++echo.
++echo HAMU MASTER V24 - WINDOWS STARTUP AND LOGIN FIX
++echo Server: http://localhost:%PORT%
++echo Keep this window open while playing. Press Ctrl+C to stop safely.
++echo If an older game server is running, stop that server first.
++echo.
++node server\server.js
++set "GAME_EXIT=%ERRORLEVEL%"
++if not "%GAME_EXIT%"=="0" (
++  echo.
++  echo Game could not start. Read the error above.
++  echo Do not delete your account data or the HamuMaster folder.
++  echo See WINDOWS-START-FIX-V24.txt for help.
++  pause
++)
++exit /b %GAME_EXIT%

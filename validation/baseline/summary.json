@@ -1,0 +1,64 @@
+{
+  "repository": "/tmp/hamu-v30/baseline",
+  "dependency_install": {"command": "npm install --no-audit --no-fund", "exitCode": 0, "addedPackages": 1},
+  "npmRunCheck": {
+    "command": "npm run check",
+    "exitCode": 0,
+    "reportedModulesParsed": 56,
+    "failures": 0,
+    "covers": [
+      "direct .js files in client, shared, server, scripts, and tests",
+      "Node syntax parse via node --check",
+      "relative local import targets matched by its regex exist",
+      "relative src/href assets referenced by index.html exist"
+    ],
+    "doesNotCover": [
+      "vendor JavaScript (not in its folder list)",
+      "nested subdirectories under checked folders",
+      "runtime behavior or test assertions"
+    ]
+  },
+  "allShippedJsSyntax": {
+    "command": "node --check on every .js under repository, excluding node_modules",
+    "filesChecked": 60,
+    "failures": 0,
+    "exitCode": 0
+  },
+  "npmTest": {
+    "command": "npm test",
+    "exitCode": 0,
+    "tests": 123,
+    "passed": 123,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "focusedV30": {
+    "command": "node --test tests/v30-character-fixes.test.js",
+    "exitCode": 0,
+    "tests": 10,
+    "passed": 10,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "coverageReview": {
+    "party": "Backend/protocol coverage is substantial: matchmaking.test.js covers packing, wait/cancel, backfill, capacity, modes and FFA; social-integration.test.js covers live party leader/ready gating, cancellation, invites/expiry, capacity/leadership, bot replacement, return-to-lobby readiness, full FFA, and socket replacement. v30-character-fixes.test.js covers lobby model reuse/selection and kit synchronization, including rapid in-flight changes.",
+    "login": "auth.test.js and auth-registration.test.js cover registration, validation, uniqueness, login identities/password failures, sessions, logout, restart persistence, origin/content-type protections, and single-device session revocation. save-accounts.test.js adds legacy/email persistence coverage.",
+    "countdown": "session-warning.test.js verifies the replaced-session warning/countdown by source assertions (4003 event wiring, notice text, 5s CSS animation, remaining=5, reload/removal hooks). queue-dock.test.js checks queue elapsed/count display and cancellation; no runtime fake-clock assertion of countdown transitions was found.",
+    "gaps": [
+      "No browser-level test exercising the rendered login/register form, validation messages, or end-to-end login UI navigation was found.",
+      "Countdown coverage is static source/regex-based rather than executing the timer and asserting each displayed second or reload timing.",
+      "Party UI rendering coverage is limited to v30 lobby/model and kit-sync unit checks; most party behavior is server/WebSocket integration rather than browser UI interaction."
+    ]
+  },
+  "logs": {
+    "npmInstall": "npm-install.log",
+    "npmRunCheck": "npm-run-check.log",
+    "nodeCheckAll": "node-check-all.log",
+    "npmTest": "npm-test.log",
+    "focusedV30": "v30-character-fixes.log"
+  }
+}
