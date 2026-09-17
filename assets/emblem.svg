@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">Hamu Master emblem</title>
+  <desc id="desc">Original angular amber and cream geometric mark on a transparent background.</desc>
+  <g stroke="#171f24" stroke-width="3" stroke-linejoin="miter">
+    <path d="M13 18h27l24 46-18 34H25l20-34Z" fill="#efaa32"/>
+    <path d="M43 18h28l22 42-13 27-18-23Z" fill="#f4e6bd"/>
+    <path d="M72 18h28l23 44-33 36-16-28 19-19Z" fill="#d88125"/>
+    <path d="M28 98h25l11-20 14 20H52l-12 16Z" fill="#f4e6bd"/>
+  </g>
+</svg>

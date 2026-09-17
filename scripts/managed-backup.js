@@ -1,0 +1,14 @@
+import { mkdir, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+const url=(process.env.SUPABASE_URL||'').replace(/\/$/,'');
+const key=process.env.SUPABASE_SERVICE_ROLE_KEY||'';
+if(!url||!key)throw new Error('Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY first.');
+const table=process.env.HAMU_DB_TABLE||'hamu_state';
+const r=await fetch(`${url}/rest/v1/${table}?select=name,payload,updated_at`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});
+if(!r.ok)throw new Error(`Backup request failed: ${r.status}`);
+const rows=await r.json();
+const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+const dir=join(process.env.HAMU_BACKUP_DIR||'backups',`managed-${stamp}`);await mkdir(dir,{recursive:true,mode:0o700});
+for(const row of rows)if(row?.name)await writeFile(join(dir,row.name),JSON.stringify(row.payload)+'\n',{mode:0o600});
+await writeFile(join(dir,'MANIFEST.json'),JSON.stringify({createdAt:new Date().toISOString(),source:'Supabase Postgres via PostgREST',files:rows.map(r=>r.name) },null,2)+'\n',{mode:0o600});
+console.log(`Managed backup written to ${dir}`);

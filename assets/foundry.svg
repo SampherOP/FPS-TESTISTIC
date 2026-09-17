@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420" role="img" aria-labelledby="title desc">
+  <title id="title">Foundry Training Complex</title>
+  <desc id="desc">Isometric blueprint illustration of a three-lane industrial training compound.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#27323a"/><stop offset="1" stop-color="#151d24"/></linearGradient>
+    <linearGradient id="slate" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#53616a"/><stop offset="1" stop-color="#303d46"/></linearGradient>
+    <linearGradient id="roof" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#69767a"/><stop offset="1" stop-color="#3e4b52"/></linearGradient>
+    <linearGradient id="amber" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f0a932"/><stop offset="1" stop-color="#ad641d"/></linearGradient>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#91a1a2" stroke-opacity=".12" stroke-width="1"/></pattern>
+    <filter id="shadow" x="-20%" y="-30%" width="140%" height="170%"><feGaussianBlur in="SourceAlpha" stdDeviation="5"/><feOffset dy="7"/><feComponentTransfer><feFuncA type="linear" slope=".34"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="900" height="420" fill="url(#bg)"/>
+  <path d="M0 345L450 105 900 345v75H0Z" fill="#111920"/>
+  <path d="M0 345L450 105 900 345" fill="none" stroke="#87928d" stroke-opacity=".22" stroke-width="2"/>
+  <path d="M0 345L450 105 900 345" fill="url(#grid)" opacity=".65"/>
+  <g opacity=".35" stroke="#b4beb8" stroke-width="1"><path d="M55 372L450 164 846 372"/><path d="M145 404L450 244 755 404"/><path d="M170 315L450 168 730 315"/></g>
+
+  <!-- three north-south lanes -->
+  <g fill="#202b32" stroke="#88948f" stroke-opacity=".32" stroke-width="2">
+    <path d="M158 334L450 178 485 198 196 356Z"/>
+    <path d="M329 385L450 320 450 178 415 198 415 299 292 365Z"/>
+    <path d="M531 385L450 341 450 178 485 198 485 320 567 365Z"/>
+    <path d="M704 334L450 198 415 218 666 356Z"/>
+  </g>
+  <g fill="none" stroke="#c6b889" stroke-opacity=".42" stroke-width="3" stroke-dasharray="14 12"><path d="M189 332L450 193"/><path d="M450 329V193"/><path d="M711 332L450 193"/></g>
+
+  <!-- west outer block -->
+  <g filter="url(#shadow)">
+    <path d="M45 196L172 128 307 203 179 276Z" fill="url(#roof)" stroke="#e5d6ad" stroke-width="3"/>
+    <path d="M45 196v85l134 76v-81Z" fill="#37454d" stroke="#d7c89f" stroke-width="2"/>
+    <path d="M179 276l128-73v82l-128 72Z" fill="#26353d" stroke="#b9b394" stroke-width="2"/>
+    <path d="M75 190l97-52 99 55-96 54Z" fill="#212c33" stroke="#8f9e9a" stroke-width="2"/>
+    <path d="M92 200l58-31 19 11-58 32Z" fill="#78dce0" stroke="#b8ffff" stroke-width="1"/>
+    <path d="M199 143l72 40-18 10-72-40Z" fill="#4bb9bf" opacity=".8"/>
+    <g fill="none" stroke="#d7c89f" stroke-opacity=".6" stroke-width="2"><path d="M67 220l89 50"/><path d="M67 239l89 50"/><path d="M205 281l83-47"/><path d="M205 300l83-47"/></g>
+    <path d="M86 270h46v27H86z" fill="#1c272d" stroke="#e6a72f" stroke-width="3"/><path d="M98 278h22" stroke="#e6a72f" stroke-width="2"/>
+  </g>
+  <!-- east outer block -->
+  <g filter="url(#shadow)">
+    <path d="M593 203l135-75 127 68-136 76Z" fill="url(#roof)" stroke="#e5d6ad" stroke-width="3"/>
+    <path d="M593 203v82l126 75v-88Z" fill="#37454d" stroke="#d7c89f" stroke-width="2"/>
+    <path d="M719 277l136-81v83l-136 81Z" fill="#26353d" stroke="#b9b394" stroke-width="2"/>
+    <path d="M626 205l102-57 96 52-103 58Z" fill="#212c33" stroke="#8f9e9a" stroke-width="2"/>
+    <path d="M646 207l59-33 21 11-59 34Z" fill="#78dce0" stroke="#b8ffff" stroke-width="1"/>
+    <path d="M753 148l73 39-19 11-72-39Z" fill="#4bb9bf" opacity=".8"/>
+    <g fill="none" stroke="#d7c89f" stroke-opacity=".6" stroke-width="2"><path d="M614 228l88 52"/><path d="M614 247l88 52"/><path d="M744 284l89-52"/><path d="M744 303l89-52"/></g>
+    <path d="M755 285h47v27h-47z" fill="#1c272d" stroke="#e6a72f" stroke-width="3"/><path d="M766 293h23" stroke="#e6a72f" stroke-width="2"/>
+  </g>
+
+  <!-- central plaza -->
+  <path d="M284 255L450 166l167 91-166 93Z" fill="#4a575b" stroke="#e9d9ad" stroke-width="3" filter="url(#shadow)"/>
+  <path d="M316 258l134-72 134 72-133 73Z" fill="#29373c" stroke="#83918c" stroke-width="2"/>
+  <path d="M356 258l94-51 95 51-94 51Z" fill="#34454a" stroke="#cbbd90" stroke-opacity=".55"/>
+  <g fill="none" stroke="#94a29d" stroke-opacity=".6" stroke-width="2"><path d="M284 282l166 90"/><path d="M450 372l167-91"/><path d="M317 300l133 73"/><path d="M450 373l134-73"/></g>
+
+  <!-- capture nodes -->
+  <g font-family="Arial, sans-serif" font-weight="700" text-anchor="middle">
+    <g><circle cx="450" cy="141" r="23" fill="#172228" stroke="#e9d9ad" stroke-width="3"/><circle cx="450" cy="141" r="14" fill="none" stroke="#e7a630" stroke-width="4"/><path d="M450 122v38M431 141h38" stroke="#78dce0" stroke-width="2"/><text x="450" y="112" font-size="14" fill="#f4e7bf">A</text></g>
+    <g><circle cx="450" cy="257" r="23" fill="#172228" stroke="#e9d9ad" stroke-width="3"/><circle cx="450" cy="257" r="14" fill="none" stroke="#e7a630" stroke-width="4"/><path d="M450 238v38M431 257h38" stroke="#78dce0" stroke-width="2"/><text x="450" y="228" font-size="14" fill="#f4e7bf">B</text></g>
+    <g><circle cx="450" cy="344" r="23" fill="#172228" stroke="#e9d9ad" stroke-width="3"/><circle cx="450" cy="344" r="14" fill="none" stroke="#e7a630" stroke-width="4"/><path d="M450 325v38M431 344h38" stroke="#78dce0" stroke-width="2"/><text x="450" y="315" font-size="14" fill="#f4e7bf">C</text></g>
+  </g>
+
+  <!-- amber cargo crates around plaza -->
+  <g fill="url(#amber)" stroke="#f3d38a" stroke-width="2">
+    <path d="M250 258l49-27 43 24-49 28Z"/><path d="M250 258v34l43 24v-33Z"/><path d="M293 282l49-27v34l-49 27Z"/>
+    <path d="M560 231l49 27-43 24-49-27Z"/><path d="M560 231v34l-43-24v34l43 24v-34l49-27v34l-49 27Z" fill="#bc7020"/>
+    <path d="M274 334l43-24 43 24-43 24Z"/><path d="M274 334v30l43 23v-29Z"/><path d="M317 358l43-24v30l-43 23Z"/>
+    <path d="M540 335l43-24 43 23-43 25Z"/><path d="M540 335v30l43 23v-29Z"/><path d="M583 359l43-25v30l-43 24Z"/>
+  </g>
+  <g stroke="#70451b" stroke-width="2" opacity=".8"><path d="M266 263l45 25M267 274l45 25M573 238l-43 24M573 249l-43 24M286 339l30 17M552 340l30 17"/></g>
+
+  <!-- title and north marker -->
+  <g font-family="Arial, sans-serif">
+    <text x="28" y="38" fill="#f4e7bf" font-size="21" letter-spacing="5" font-weight="700">FOUNDRY</text>
+    <text x="30" y="59" fill="#78dce0" font-size="10" letter-spacing="3">TRAINING COMPLEX</text>
+    <path d="M838 32v35M838 32l-7 12h14Z" fill="#e7a630"/><text x="838" y="82" text-anchor="middle" fill="#f4e7bf" font-size="10" letter-spacing="2">N</text>
+  </g>
+  <g opacity=".6" fill="none" stroke="#e9d9ad" stroke-width="2"><path d="M24 390h130"/><path d="M24 384v12M154 384v12"/></g>
+</svg>
